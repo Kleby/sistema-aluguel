@@ -4,7 +4,9 @@
   "description": "Sistema para alguel de qualquer produto",
   "main": "server",
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "start:dev": "nodemon server.js",
+    "start:prod": "node server.js"
   },
   "author": "João Kleby Barros Veiga",
   "license": "ISC",
@@ -14,9 +16,14 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.15.2"
+    "multer": "^2.0.2",
+    "mysql2": "^3.15.2",
+    "path": "^0.12.7"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
-  }
+  },
+  "keywords": ["aluguel", "roupas", "nodejs", "mysql"],
+  "author": "Seu Nome",
+  "license": "MIT"
 }
