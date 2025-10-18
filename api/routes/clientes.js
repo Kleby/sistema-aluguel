@@ -1,94 +1,79 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const db = require('../config/database');
-const { authMiddleware, adminMiddleware } = require('../middleware/auth');
+const Cliente = require("../models/repository/Cliente.repository");
+const { authMiddleware, adminMiddleware } = require("../middleware/auth");
 
 // Aplicar autenticação em todas as rotas de clientes
 router.use(authMiddleware);
 
 // GET - Listar todos os clientes (apenas admin)
-router.get('/', adminMiddleware, (req, res) => {
-  const sql = 'SELECT * FROM clientes ORDER BY nome';
-  
-  db.query(sql, (err, results) => {
-    if (err) {
-      console.error('Erro ao buscar clientes:', err);
-      return res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-    res.json(results);
-  });
+router.get("/", adminMiddleware, async (req, res) => {
+  try {
+    const orderBy = req.query.orderBy;    
+    const clientes = orderBy
+    ? await Cliente.obterTodos(orderBy)
+    : await Cliente.obterTodos();
+    
+    return res.status(200).json(clientes);
+  } catch (err) {
+    console.error(err.message);
+    res.status(404).json({
+      error: "Erro ao consultar clientes",
+    });
+  }
 });
 
 // GET - Buscar cliente por ID (apenas admin)
-router.get('/:id', adminMiddleware, (req, res) => {
-  const sql = 'SELECT * FROM clientes WHERE id = ?';
-  
-  db.query(sql, [req.params.id], (err, results) => {
-    if (err) {
-      console.error('Erro ao buscar cliente:', err);
-      return res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-    
-    if (results.length === 0) {
-      return res.status(404).json({ error: 'Cliente não encontrado' });
-    }
-    
-    res.json(results[0]);
-  });
+router.get("/:id", adminMiddleware, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const cliente = await Cliente.obterClientePorId(id);
+    return res.status(200).json(cliente);
+  } catch (err) {
+      console.error(err.message);
+      res.status(404).json({
+        error: "Erro ao consultar o cliente por id",
+    });
+  }
 });
 
 // POST - Criar novo cliente (apenas admin)
-router.post('/', adminMiddleware, (req, res) => {
-  const { nome, email, telefone, cpf, endereco } = req.body;
-
-  // Validações
-  if (!nome || !email || !cpf) {
-    return res.status(400).json({ error: 'Nome, email e CPF são obrigatórios' });
+router.post("/", adminMiddleware, async (req, res) => {
+  // const { nome, email, telefone, cpf, endereco } = await req.body;
+  try {
+    const novoCliente = await Cliente.criar(req.body)
+    return res.status(201).json(novoCliente);
+  } catch (err) {
+      console.error(err.message);
+      res.status(err.statusCode).json({
+        error: "Erro ao consultar clientes. Error: " + err.message,
+      });
   }
-
-  const sql = 'INSERT INTO clientes (nome, email, telefone, cpf, endereco) VALUES (?, ?, ?, ?, ?)';
-  
-  db.query(sql, [nome, email, telefone, cpf, endereco], (err, results) => {
-    if (err) {
-      if (err.code === 'ER_DUP_ENTRY') {
-        return res.status(400).json({ error: 'CPF ou Email já cadastrado' });
-      }
-      console.error('Erro ao criar cliente:', err);
-      return res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-    
-    res.status(201).json({ 
-      message: 'Cliente cadastrado com sucesso!', 
-      id: results.insertId 
-    });
-  });
 });
 
 // PUT - Atualizar cliente (apenas admin)
-router.put('/:id', adminMiddleware, (req, res) => {
-  const { nome, email, telefone, cpf, endereco } = req.body;
+router.put("/:id", adminMiddleware, async (req, res) => {
 
-  if (!nome || !email || !cpf) {
-    return res.status(400).json({ error: 'Nome, email e CPF são obrigatórios' });
+  try {
+    const clienteAtualizado = await Cliente.atualizar(req.body);
+    return res.status(200).json(clienteAtualizado);
+  } catch (err) {
+    console.error(err.message);
+    res.status(err.statusCode).json({
+      error: "Erro ao tentar atualizar o cliente. Error: "+ err.message,
+    });
   }
+});
 
-  const sql = 'UPDATE clientes SET nome=?, email=?, telefone=?, cpf=?, endereco=? WHERE id=?';
-  
-  db.query(sql, [nome, email, telefone, cpf, endereco, req.params.id], (err, results) => {
-    if (err) {
-      if (err.code === 'ER_DUP_ENTRY') {
-        return res.status(400).json({ error: 'CPF ou Email já está em uso por outro cliente' });
-      }
-      console.error('Erro ao atualizar cliente:', err);
-      return res.status(500).json({ error: 'Erro interno do servidor' });
-    }
+router.delete("/:id", adminMiddleware, async (req, res) => {
+  try {
     
-    if (results.affectedRows === 0) {
-      return res.status(404).json({ error: 'Cliente não encontrado' });
-    }
-    
-    res.json({ message: 'Cliente atualizado com sucesso!' });
-  });
+  } catch (err) {
+    console.error(err.message);
+    res.status(err.statusCode).json({
+      error: err.message
+    });
+  }
 });
 
 module.exports = router;

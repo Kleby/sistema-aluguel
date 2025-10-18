@@ -37,13 +37,11 @@ app.use('/api/roupas', require('./routes/roupas'));
 app.use('/api/alugueis', require('./routes/alugueis'));
 
 // Conectar ao banco
-db.connect((err) => {
-  if (err) {
-    console.error('Erro conectando ao banco:', err);
-    return;
-  }
-  console.log('Conectado ao MySQL');
-});
+db.then(conn=> {
+  conn.connect()
+}).catch(err=>{
+  console.error("Não foi possivel COnectar ao banco de dados! Error: ", err);
+})
 
 // Criar diretório uploads se não existir
 const fs = require('fs');

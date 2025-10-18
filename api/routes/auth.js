@@ -1,44 +1,48 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const User = require('../models/User.js');
-const { generateToken, authMiddleware, adminMiddleware } = require('../middleware/auth');
+const User = require("../models/User.js");
+const {
+  generateToken,
+  authMiddleware,
+  adminMiddleware,
+} = require("../middleware/auth");
 
 // POST - Login
-router.post('/login', async (req, res) => {
+router.post("/login", async (req, res) => {
   try {
     const { email, senha } = req.body;
-
+    
     // Validar campos
     if (!email || !senha) {
-      return res.status(400).json({ 
-        error: 'Email e senha são obrigatórios.' 
+      return res.status(400).json({
+        error: "Email e senha são obrigatórios.",
       });
     }
-
+    
     // Buscar usuário
     const user = await User.findByEmail(email);
-    
     if (!user) {
-      return res.status(401).json({ 
-        error: 'Credenciais inválidas.' 
+      return res.status(401).json({
+        error: "Credenciais inválidas.",
       });
     }
 
     // Verificar senha
     const isPasswordValid = await User.checkPassword(senha, user.senha);
-    
+
     if (!isPasswordValid) {
-      return res.status(401).json({ 
-        error: 'Credenciais inválidas.' 
+      return res.status(401).json({
+        error: "Credenciais inválidas.",
       });
     }
 
     // Verificar se conta está ativa e não expirou
     const isActive = await User.isActive(user);
-    
+
     if (!isActive) {
-      return res.status(401).json({ 
-        error: 'Conta inativa ou expirada. Entre em contato com o administrador.' 
+      return res.status(401).json({
+        error:
+          "Conta inativa ou expirada. Entre em contato com o administrador.",
       });
     }
 
@@ -52,31 +56,30 @@ router.post('/login', async (req, res) => {
       email: user.email,
       tipo: user.tipo,
       status: user.status,
-      data_expiracao: user.data_expiracao
+      data_expiracao: user.data_expiracao,
     };
 
     res.json({
-      message: 'Login realizado com sucesso!',
+      message: "Login realizado com sucesso!",
       token,
-      user: userData
+      user: userData,
     });
-
   } catch (error) {
-    console.error('Erro no login:', error);
-    res.status(500).json({ 
-      error: 'Erro interno do servidor.' 
+    console.error("Erro no login:", error);
+    res.status(500).json({
+      error: "Erro interno do servidor.",
     });
   }
 });
 
 // POST - Verificar token
-router.post('/verify', authMiddleware, async (req, res) => {
+router.post("/verify", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    
+
     if (!user) {
-      return res.status(404).json({ 
-        error: 'Usuário não encontrado.' 
+      return res.status(404).json({
+        error: "Usuário não encontrado.",
       });
     }
 
@@ -86,17 +89,17 @@ router.post('/verify', authMiddleware, async (req, res) => {
       email: user.email,
       tipo: user.tipo,
       status: user.status,
-      data_expiracao: user.data_expiracao
+      data_expiracao: user.data_expiracao,
     };
 
-    res.json({ 
-      valid: true, 
-      user: userData 
+    res.json({
+      valid: true,
+      user: userData,
     });
   } catch (error) {
-    console.error('Erro ao verificar token:', error);
-    res.status(500).json({ 
-      error: 'Erro interno do servidor.' 
+    console.error("Erro ao verificar token:", error);
+    res.status(500).json({
+      error: "Erro interno do servidor.",
     });
   }
 });

@@ -16,10 +16,10 @@ router.get('/', (req, res) => {
     ORDER BY a.data_aluguel DESC
   `;
   
-  db.query(sql, (err, results) => {
+  db.then((conn)=> conn.query(sql, (err, results) => {
     if (err) throw err;
     res.json(results);
-  });
+  }));
 });
 
 // POST - Criar novo aluguel
@@ -32,7 +32,7 @@ router.post('/', (req, res) => {
     VALUES (?, ?, ?, ?, ?, ?)
   `;
   
-  db.query(sql, [cliente_id, roupa_id, data_aluguel, data_devolucao_prevista, valor_total, usuario_id], (err, results) => {
+  db.then((conn)=> conn.query(sql, [cliente_id, roupa_id, data_aluguel, data_devolucao_prevista, valor_total, usuario_id], (err, results) => {
     if (err) throw err;
     
     // Atualizar status da roupa para "alugado"
@@ -41,7 +41,7 @@ router.post('/', (req, res) => {
       if (err) throw err;
       res.json({ message: 'Aluguel realizado com sucesso!', id: results.insertId });
     });
-  });
+  }));
 });
 
 module.exports = router;
