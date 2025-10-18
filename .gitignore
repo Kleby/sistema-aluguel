@@ -1,2 +1,6 @@
 /api/node_modules
 /api/package-lock.json
+/api/.env
+/api/config/database.js
+/api/generate-hash.js
+schema.sql
