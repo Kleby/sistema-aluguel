@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../config/database");
+const Roupa = require("../models/repository/Roupa.repository.js");
 const upload = require("../config/upload");
 const { authMiddleware } = require("../middleware/auth");
 
@@ -8,29 +8,67 @@ const { authMiddleware } = require("../middleware/auth");
 router.use(authMiddleware);
 
 // GET - Listar todas as roupas
-router.get("/", (req, res) => {
-  const sql = "SELECT * FROM roupas ORDER BY nome";
-  db.then((conn) =>
-    conn.query(sql, (err, results) => {
-      if (err) throw err;
-      res.json(results);
-    })
-  );
+router.get("/", async (req, res) => {
+  try {
+    const orderBy = req.query.orderBy ?? "nome";
+    const roupas = await Roupa.obterTodos(orderBy);
+    return res.status(200).json(roupas);
+  } catch (err) {
+    console.error(err.message);
+    return res.status(err.statusCode).json(err);
+  }
 });
 
-// GET - Buscar roupa por ID
-router.get("/:id", (req, res) => {
-  const sql = "SELECT * FROM roupas WHERE id = ?";
-  db.then((conn) =>
-    conn.query(sql, [req.params.id], (err, results) => {
-      if (err) throw err;
-      res.json(results[0]);
-    })
-  );
+// Buscar por id
+router.get("/:id", async (req,res) => {
+  try {
+    const id = req.params.id;
+    const roupas = await Roupa.obterPorId(id);
+    return res.status(200).json(roupas);
+  } catch (err) {
+    console.error(err.message);
+    return res.status(err.statusCode).json(err)
+  }
+});
+
+//Buscar por nome
+router.get("/:nome", async (req,res) => {
+  try {
+    const nome = req.params.nome;
+    const roupas = await Roupa.obterPorNome(id);
+    return res.status(200).json(roupas);
+  } catch (err) {
+    console.error(err.message);
+    return res.status(err.statusCode).json(err)
+  }
+});
+
+//Buscar por tamanho
+router.get("/:tamanho", async (req,res) => {
+  try {
+    const tamanho = req.params.tamanho;
+    const roupas = await Roupa.obterPorTamanho(tamanho);
+    return res.status(200).json(roupas);
+  } catch (err) {
+    console.error(err.message);
+    return res.status(err.statusCode).json(err)
+  }
+});
+
+//Buscar por categoria
+router.get("/:categoria", async (req,res) => {
+  try {
+    const categoria = req.params.categoria;
+    const roupas = await Roupa.obterPorCategoria(categoria);
+    return res.status(200).json(roupas);
+  } catch (err) {
+    console.error(err.message);
+    return res.status(err.statusCode).json(err)
+  }
 });
 
 // POST - Adicionar nova roupa com upload de imagem
-router.post("/", upload.single("imagem"), (req, res) => {
+router.post("/", upload.single("imagem"), async (req, res) => {
   try {
     const { nome, descricao, tamanho, categoria, preco_aluguel } = req.body;
 
@@ -40,34 +78,8 @@ router.post("/", upload.single("imagem"), (req, res) => {
         req.file.filename
       }`;
     }
-
-    const sql =
-      "INSERT INTO roupas (nome, descricao, tamanho, categoria, preco_aluguel, imagem_url) VALUES (?, ?, ?, ?, ?, ?)";
-
-    db.then((conn) =>
-      conn.query(
-        sql,
-        [
-          nome,
-          descricao,
-          tamanho,
-          categoria,
-          parseFloat(preco_aluguel),
-          imagem_url,
-        ],
-        (err, results) => {
-          if (err) {
-            console.error("Erro ao inserir roupa:", err);
-            return res.status(500).json({ error: "Erro ao cadastrar roupa" });
-          }
-          res.json({
-            message: "Roupa adicionada com sucesso!",
-            id: results.insertId,
-            imagem_url: imagem_url,
-          });
-        }
-      )
-    );
+    const roupa = await Roupa.criar({ nome, descricao, tamanho, categoria, preco_aluguel }, imagem_url);
+    return res.status(201).json(roupa);
   } catch (error) {
     console.error("Erro no upload:", error);
     res.status(500).json({ error: "Erro no upload da imagem" });
@@ -75,46 +87,21 @@ router.post("/", upload.single("imagem"), (req, res) => {
 });
 
 // PUT - Atualizar roupa
-router.put("/:id", upload.single("imagem"), (req, res) => {
+router.put("/:id", upload.single("imagem"), async (req, res) => {
   try {
     const { nome, descricao, tamanho, categoria, preco_aluguel, status } =
       req.body;
+    const id = req.params.id;
+    const imagemUrl = await Roupa.obterImagem(id) || "";
+    
+    if (req.file) {
+      imagemUrl = `${req.protocol}://${req.get("host")}/uploads/${
+        req.file.filename
+      }`;
+    }
 
-    const getSql = "SELECT imagem_url FROM roupas WHERE id = ?";
-    db.then((conn) =>
-      conn.query(getSql, [req.params.id], (err, results) => {
-        if (err) throw err;
-
-        let imagem_url = results[0]?.imagem_url || "";
-
-        if (req.file) {
-          imagem_url = `${req.protocol}://${req.get("host")}/uploads/${
-            req.file.filename
-          }`;
-        }
-
-        const updateSql =
-          "UPDATE roupas SET nome=?, descricao=?, tamanho=?, categoria=?, preco_aluguel=?, status=?, imagem_url=? WHERE id=?";
-
-        db.query(
-          updateSql,
-          [
-            nome,
-            descricao,
-            tamanho,
-            categoria,
-            preco_aluguel,
-            status,
-            imagem_url,
-            req.params.id,
-          ],
-          (err, results) => {
-            if (err) throw err;
-            res.json({ message: "Roupa atualizada com sucesso!" });
-          }
-        );
-      })
-    );
+    const roupaAtualizada = await Roupa.atualizar(id, { nome, descricao, tamanho, categoria, preco_aluguel, status, imagemUrl })
+    return res.status(200).json(roupaAtualizada);    
   } catch (error) {
     console.error("Erro ao atualizar roupa:", error);
     res.status(500).json({ error: "Erro ao atualizar roupa" });
