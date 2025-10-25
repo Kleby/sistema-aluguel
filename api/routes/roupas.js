@@ -12,6 +12,7 @@ router.get("/", async (req, res) => {
   try {
     const orderBy = req.query.orderBy ?? "nome";
     const roupas = await Roupa.obterTodos(orderBy);
+
     return res.status(200).json(roupas);
   } catch (err) {
     console.error(err.message);
@@ -20,50 +21,38 @@ router.get("/", async (req, res) => {
 });
 
 // Buscar por id
-router.get("/:id", async (req,res) => {
+router.get("/:id", async (req, res) => {
   try {
     const id = req.params.id;
     const roupas = await Roupa.obterPorId(id);
     return res.status(200).json(roupas);
   } catch (err) {
     console.error(err.message);
-    return res.status(err.statusCode).json(err)
+    return res.status(err.statusCode).json(err);
   }
 });
 
 //Buscar por nome
-router.get("/:nome", async (req,res) => {
+router.get("/nome/:nome", async (req, res) => {
   try {
     const nome = req.params.nome;
     const roupas = await Roupa.obterPorNome(id);
     return res.status(200).json(roupas);
   } catch (err) {
     console.error(err.message);
-    return res.status(err.statusCode).json(err)
+    return res.status(err.statusCode).json(err);
   }
 });
 
 //Buscar por tamanho
-router.get("/:tamanho", async (req,res) => {
+router.get("/tamanho/:tamanho", async (req, res) => {
   try {
     const tamanho = req.params.tamanho;
     const roupas = await Roupa.obterPorTamanho(tamanho);
     return res.status(200).json(roupas);
   } catch (err) {
     console.error(err.message);
-    return res.status(err.statusCode).json(err)
-  }
-});
-
-//Buscar por categoria
-router.get("/:categoria", async (req,res) => {
-  try {
-    const categoria = req.params.categoria;
-    const roupas = await Roupa.obterPorCategoria(categoria);
-    return res.status(200).json(roupas);
-  } catch (err) {
-    console.error(err.message);
-    return res.status(err.statusCode).json(err)
+    return res.status(err.statusCode).json(err);
   }
 });
 
@@ -78,7 +67,10 @@ router.post("/", upload.single("imagem"), async (req, res) => {
         req.file.filename
       }`;
     }
-    const roupa = await Roupa.criar({ nome, descricao, tamanho, categoria, preco_aluguel }, imagem_url);
+    const roupa = await Roupa.criar(
+      { nome, descricao, tamanho, categoria, preco_aluguel },
+      imagem_url
+    );
     return res.status(201).json(roupa);
   } catch (error) {
     console.error("Erro no upload:", error);
@@ -91,17 +83,31 @@ router.put("/:id", upload.single("imagem"), async (req, res) => {
   try {
     const { nome, descricao, tamanho, categoria, preco_aluguel, status } =
       req.body;
-    const id = req.params.id;
-    const imagemUrl = await Roupa.obterImagem(id) || "";
-    
-    if (req.file) {
-      imagemUrl = `${req.protocol}://${req.get("host")}/uploads/${
-        req.file.filename
-      }`;
+
+    if (!nome || !descricao || !categoria || !preco_aluguel) {
+      return res.status(400).json({ error: "Campos obrigatórios faltando" });
     }
 
-    const roupaAtualizada = await Roupa.atualizar(id, { nome, descricao, tamanho, categoria, preco_aluguel, status, imagemUrl })
-    return res.status(200).json(roupaAtualizada);    
+    const id = req.params.id;
+    let imagem_url = (await Roupa.obterImagem(id)) || "";
+
+    if (req.file) {
+      imagem_url = `${req.protocol}://${req.get("host")}/uploads/${
+        req.file.filename
+      }`;
+      console.log(imagem_url);
+    }
+
+    const roupaAtualizada = await Roupa.atualizar(id, {
+      nome,
+      descricao,
+      tamanho,
+      categoria,
+      preco_aluguel,
+      status,
+      imagem_url,
+    });
+    return res.status(200).json(roupaAtualizada);
   } catch (error) {
     console.error("Erro ao atualizar roupa:", error);
     res.status(500).json({ error: "Erro ao atualizar roupa" });

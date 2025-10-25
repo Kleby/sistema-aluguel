@@ -16,7 +16,9 @@ class Cliente {
         FROM clientes
         WHERE email=?
         `;
-      const emailsExistentes = await conn.execute(checarEmailSql, [email]);
+      
+      
+      const [emailsExistentes] = await conn.execute(checarEmailSql, [email]);      
       if (emailsExistentes.length > 0) {
         throw new Error("Já existe um cliente com este email!");
       }
@@ -26,7 +28,7 @@ class Cliente {
         FROM clientes
         WHERE cpf=?
       `;
-      const CPFExistentes = await conn.execute(checarCPFSql, [cpf]);
+      const [CPFExistentes] = await conn.execute(checarCPFSql, [cpf]);
       if (CPFExistentes.length > 0) {
         throw new Error("Já existe um cliente cadastrado com este CPF");
       }
@@ -58,7 +60,7 @@ class Cliente {
       if (err.code === "ER_DUP_ENTRY") {
         if (err.message.includes("email")) {
           throw new Error({
-            message: "Já existe um cliente cadastrado com este email",
+            message: "Já existe um cliente cadastrado com este email: mesagem de throw new error email",
             statusCode: 409,
           });
         } else if (err.message.includes("cpf")) {

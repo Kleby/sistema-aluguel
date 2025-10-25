@@ -8,68 +8,126 @@ class Aluguel {
       data_aluguel,
       data_devolucao_prevista,
       valor_total,
+      valor_taxa,
       usuario_id,
     } = aluguel;
     try {
       const conn = await db;
+      // iniciar a transação para gantir a automicidade
+      await conn.beginTransaction();
       const sql = `
-            INSERT INTO alugueis (cliente_id, roupa_id, data_aluguel, data_devolucao_prevista, valor_total, usuario_id)
-            VALUES (?, ?, ?, ?, ?, ?);
+            INSERT INTO alugueis 
+            (cliente_id, roupa_id, data_aluguel, data_devolucao_prevista, valor_total, valor_taxa, usuario_id, subtotal )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?);
             `;
-      await conn.execute(sql, [
+      const [result]  =await conn.execute(sql, [
         cliente_id,
         roupa_id,
         data_aluguel,
         data_devolucao_prevista,
         valor_total,
+        valor_taxa || 0,
         usuario_id,
+        valor_total
       ]);
+
+      const aluguelId = result.insertId;
 
       const statusRoupaSql = `
         UPDATE roupas
         SET status = 'alugado'
         WHERE id = ?
-      `
-      await conn.execute(statusRoupaSql, [roupa_id]);
+      `;
+      const [updateResult] = await conn.execute(statusRoupaSql, [roupa_id]);
+
+      if (updateResult.affectedRows === 0){
+        throw new Error("Roupa não encontrada para atualização de status");
+      }
+
+      // commitaer a transaction
+      await conn.commit();
 
       return {
         success: true,
         mesage: "Aluguel criado com sucesso!",
-        id: aluguel.id,
+        id: aluguelId,
+        roupaAtualizada: updateResult.affectedRows > 0
       };
     } catch (err) {
+       // Rollback em caso de erro
+      await conn.rollback();
       console.error("Não foi possivél criar um aluguel. Error: " + err);
       throw new Error({
         message: "Error ao tentar criar um aluguel. Error:" + err.message,
+      });
+    }
+  }
+  static async obterTodos(orderBy = "a.data_devolucao_prevista") {
+    try {
+      const conn = await db;
+      if (orderBy === "situacao") {
+        orderBy = "FIELD( 'situacao','em dias' ,'devolvido','atrasado')";
+      }
+      const sql = `
+        SELECT 
+            a.id,
+            rp.imagem_url AS roupa_imagem,
+            ct.nome AS cliente_nome,
+            rp.nome AS roupa_nome,
+            a.data_aluguel,
+            a.data_devolucao_prevista,
+            a.data_devolucao_real,
+            a.subtotal,
+            a.situacao,
+            a.dias_atrasos,
+            a.valor_taxa,
+            a.valor_total,
+            a.cliente_id
+        FROM alugueis AS a
+        LEFT JOIN clientes AS ct ON ct.id = a.cliente_id
+        LEFT JOIN roupas AS rp ON rp.id = a.roupa_id
+        ORDER BY ${orderBy}
+    `;
+      const [results] = await conn.execute(sql, [orderBy]);
+
+      return results;
+    } catch (err) {
+      console.error("Não foi possível solicitar os alugueis. " + err);
+      throw new Error({
+        message: "Erro ao tentar obter todo os alugueis. Error: " + err,
         statusCode: 400,
       });
     }
   }
-  static async obterTodos(orderBy = "data_devolucao_prevista", isStatus) {
+  static async obterTodosDTO(orderBy = "a.data_devolucao_prevista") {
     try {
       const conn = await db;
+      if (orderBy === "situacao") {
+        orderBy = "FIELD( 'situacao','em dias' ,'devolvido','atrasado')";
+      }
       const sql = `
         SELECT 
-            data_aluguel,
-            data_devolucao_prevista,
-            valor_total,
-            multa,
-            status,
-            ct.nome,
-            rp.nome
-        FROM dbo.alugueis on a
-        LEFT JOIN dbo.clientes ct ON ct.id = a.cliente_id
-        LEFT JOIN dbo.roupas rp ON rp.id = a.roupas_id
-        ORDER BY ${
-          isStatus
-            ? "FIELD(" + orderBy + ",'ativo','devolvido','atrasado')"
-            : orderBy
-        }
+            a.id,
+            rp.imagem_url AS roupa_imagem,
+            ct.nome AS cliente_nome,
+            rp.nome AS roupa_nome,
+            a.data_aluguel,
+            a.data_devolucao_prevista,
+            a.situacao,
+            DATEDIFF(a.data_devolucao_prevista, a.data_aluguel) AS dias_atrasos,
+            a.valor_total,
+            a.subtotal,
+            a.cliente_id
+        FROM alugueis AS a
+        LEFT JOIN clientes AS ct ON ct.id = a.cliente_id
+        LEFT JOIN roupas AS rp ON rp.id = a.roupa_id
+        ORDER BY ${orderBy}
     `;
       const [results] = await conn.execute(sql, [orderBy]);
+
       return results;
     } catch (err) {
-      console.error("Não foi possível solicitar os alugueis" + err);
+      console.error("Não foi possível solicitar os alugueis. " + err);
       throw new Error({
         message: "Erro ao tentar obter todo os alugueis. Error: " + err,
         statusCode: 400,
@@ -83,13 +141,12 @@ class Aluguel {
             a.data_aluguel,
             a.data_devolucao_prevista,
             a.valor_total,
-            a.multa,
-            a.status,
-            ct.nome,
-            rp.nome
-        FROM dbo.alugueis on a
-        LEFT JOIN dbo.clientes ct ON ct.id = a.cliente_id
-        LEFT JOIN dbo.roupas rp ON rp.id = a.roupas_id
+            a.situacao,
+            ct.nome AS cliente_nome,
+            rp.nome AS roupa_nome
+        FROM alugueis AS a
+        LEFT JOIN clientes AS ct ON ct.id = a.cliente_id
+        LEFT JOIN roupas AS rp ON rp.id = a.roupa_id
         WHERE a.id = ?
     `;
 
@@ -112,16 +169,15 @@ class Aluguel {
     try {
       const sql = `
         SELECT 
-        data_aluguel,
-        data_devolucao_prevista,
-        valor_total,
-        multa,
-        status,
-        ct.nome,
-        rp.nome
-        FROM dbo.alugueis on a
-        LEFT JOIN dbo.clientes ct ON ct.id = a.cliente_id
-        LEFT JOIN dbo.roupas rp ON rp.id = a.roupas_id
+        a.data_aluguel,
+        a.data_devolucao_prevista,
+        a.valor_total,
+        a.situacao,
+        ct.nome AS cliente_nome,
+        rp.nome AS roupa_nome
+        FROM alugueis AS a
+        LEFT JOIN clientes AS ct ON ct.id = a.cliente_id
+        LEFT JOIN roupas AS rp ON rp.id = a.roupa_id
         WHERE ?
         BETWEEN ? AND ?
         `;
@@ -145,16 +201,15 @@ class Aluguel {
     try {
       const sql = `
         SELECT 
-            data_aluguel,
-            data_devolucao_prevista,
-            valor_total,
-            multa,
-            status,
-            ct.nome,
-            rp.nome
-        FROM dbo.alugueis on a
-        LEFT JOIN dbo.clientes ct ON ct.id = a.cliente_id
-        LEFT JOIN dbo.roupas rp ON rp.id = a.roupas_id
+            a.data_aluguel,
+            a.data_devolucao_prevista,
+            a.valor_total,
+            a.situacao,
+            ct.nome AS cliente_nome,
+            rp.nome AS roupa_nome
+        FROM alugueis AS a
+        LEFT JOIN clientes AS ct ON ct.id = a.cliente_id
+        LEFT JOIN roupas AS rp ON rp.id = a.roupa_id
         WHERE ct.nome = ?
     `;
 
@@ -175,16 +230,15 @@ class Aluguel {
     try {
       const sql = `
         SELECT 
-            data_aluguel,
-            data_devolucao_prevista,
-            valor_total,
-            multa,
-            status,
-            ct.nome,
-            rp.nome
-        FROM dbo.alugueis on a
-        LEFT JOIN dbo.clientes ct ON ct.id = a.cliente_id
-        LEFT JOIN dbo.roupas rp ON rp.id = a.roupas_id
+            a.data_aluguel,
+            a.data_devolucao_prevista,
+            a.valor_total,
+            a.situacao,
+            ct.nome AS cliente_nome,
+            rp.nome AS roupa_nome
+        FROM alugueis AS a
+        LEFT JOIN clientes AS ct ON ct.id = a.cliente_id
+        LEFT JOIN roupas AS rp ON rp.id = a.roupa_id
         WHERE ct.id = ?
     `;
 
@@ -192,7 +246,7 @@ class Aluguel {
       const [results] = await conn.execute(sql, [clienteId]);
       return results[0];
     } catch (err) {
-      console.error("Não foi possível solicitar os alugueis" + err);
+      console.error("Não foi possível solicitar os alugueis " + err);
       throw new Error({
         message:
           "Erro ao tentar obter todo os alugueis por id do cliente. Error: " +
@@ -208,7 +262,8 @@ class Aluguel {
         roupa_id,
         data_aluguel,
         data_devolucao_prevista,
-        valor_total
+        valor_total,
+        valor_taxa,
       } = aluguel;
 
       const sql = `
@@ -219,6 +274,7 @@ class Aluguel {
                 data_aluguel = ?,
                 data_devolucao_prevista = ?,
                 valor_total = ?,
+                valor_taxa = ?
             WHERE id = ?
             `;
 
@@ -229,6 +285,7 @@ class Aluguel {
         data_aluguel,
         data_devolucao_prevista,
         valor_total,
+        valor_taxa,
         id,
       ]);
       return results[0];
@@ -243,7 +300,8 @@ class Aluguel {
 
   static async concluido(id, aluguelAtualizado) {
     try {
-      const { data_devolucao_real, subtotal, valor_total, multa } = aluguelAtualizado;
+      const { data_devolucao_real, situacao, subtotal, valor_total, multa } =
+        aluguelAtualizado;
 
       const sql = `
             UPDATE clientes
@@ -251,7 +309,8 @@ class Aluguel {
                 data_devolucao_real = ?,
                 subtotal = ?,
                 valor_total = ?,
-                multa = ?
+                multa = ?,
+                situacao = ?
             WHERE id = ?
             `;
 
@@ -261,6 +320,7 @@ class Aluguel {
         subtotal,
         valor_total + multa,
         multa,
+        situacao,
         id,
       ]);
       return results[0];
@@ -273,28 +333,27 @@ class Aluguel {
     }
   }
 
-  static async deletar(id){
+  static async deletar(id) {
     try {
-        const sql = `
+      const sql = `
         DELETE TABLE alugueis
         WHERE id = ?
-        `
-        const conn = await db;
-        await conn.execute(sql, [id]);
-        return {
-            success: true,
-            message: "Aluguel deletado com sucesso!",
-            statusCode: 200,
-        }
+        `;
+      const conn = await db;
+      await conn.execute(sql, [id]);
+      return {
+        success: true,
+        message: "Aluguel deletado com sucesso!",
+        statusCode: 200,
+      };
     } catch (err) {
-        console.error("Não foi possíevel deletar o aluguel" + err);
-        throw new Error({
-            message: "Não foi possível deletar o aluguel" + err,
-            statusCode: 500,
-        });
+      console.error("Não foi possíevel deletar o aluguel" + err);
+      throw new Error({
+        message: "Não foi possível deletar o aluguel" + err,
+        statusCode: 500,
+      });
     }
   }
 }
-
 
 module.exports = Aluguel;

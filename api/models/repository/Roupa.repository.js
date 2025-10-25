@@ -9,7 +9,6 @@ class Roupa {
             INSERT INTO roupas (nome, descricao, tamanho, categoria, preco_aluguel, imagem_url)
             VALUES (?, ?, ?, ?, ?, ?);
             `;
-
       await conn.execute(sql, [
         nome,
         descricao,
@@ -23,6 +22,7 @@ class Roupa {
         success: true,
         mesage: "Roupa adicionada com sucesso!",
         id: roupa.id,
+        imagemUrl: imagemUrl ?? "Sem imagem",
       };
     } catch (err) {
       console.error("Não foi possivél adicionar a roupa. Error: " + err);
@@ -42,6 +42,7 @@ class Roupa {
       }
       const sql = `
         SELECT 
+            id,
             nome,
             descricao,
             tamanho,
@@ -200,8 +201,15 @@ class Roupa {
   }
 
   static async atualizar(id, roupaAtualizada) {
-    const { nome, descricao, tamanho, categoria, preco_aluguel, status, imagem_url } =
-      roupaAtualizada;
+    const {
+      nome,
+      descricao,
+      tamanho,
+      categoria,
+      preco_aluguel,
+      status,
+      imagem_url,
+    } = roupaAtualizada;
     try {
       const conn = await db;
       const sql = `
@@ -213,50 +221,50 @@ class Roupa {
               categoria = ?,
               preco_aluguel = ?,
               status = ?,
-              imagem_url = ?,
-            WHERE id = ?;
+              imagem_url = ?
+            WHERE id = ?
             `;
 
-      await conn.execute(sql, [
+      const [results] = await conn.execute(sql, [
         nome,
         descricao,
         tamanho,
         categoria,
         parseFloat(preco_aluguel),
-        status,
+        status || "disponivel",
         imagem_url ?? null,
         id,
       ]);
 
+      if (results.affectedRows === 0) {
+        throw new Error("Roupa não encontrada");
+      }
+
       return {
         success: true,
         mesage: "Roupa atualizada com sucesso!",
-        id: roupa.id,
+        id: id,
       };
     } catch (err) {
-      console.error("Não foi possivél atualizar a roupa. Error: " + err);
-      throw new Error({
-        message: "Error ao tentar atualizar a roupa. Error:" + err.message,
-        statusCode: 400,
-      });
+      console.error("Não foi possível atualizar a roupa:", err);
+      throw err;
     }
   }
 
   static async obterImagem(id) {
     try {
-      const sql = `
-      SELECT imagem_url FROM roupas WHERE id=?;
-    `;
+      const sql = `SELECT imagem_url FROM roupas WHERE id=?`;
       const conn = await db;
-      const [imagem_url] = await conn.execute(sql, [id]);
-      return imagem_url[0];
-      
+      const [results] = await conn.execute(sql, [id]);
+
+      if (results.length === 0) {
+        return null;
+      }
+
+      return results[0].imagem_url;
     } catch (err) {
-      console.error("Nçao foi possivel solicitar a imagem");
-      throw new Error({
-        message: "Não foi possível obter a imagem. Error: " + err,
-        statusCode: 404,
-      });
+      console.error("Não foi possível obter a imagem:", err);
+      throw new Error("Não foi possível obter a imagem: " + err.message);
     }
   }
 

@@ -9,12 +9,31 @@ router.use(authMiddleware);
 // GET - Listar todos os aluguéis
 router.get("/", async (req, res) => {
   try {
-    const { orderBy, isStatus } = req.body;
-    const alugueis = await Aluguel.obterTodos(orderBy, isStatus);
+    const { orderBy } = req.query.orderBy ?? '';
+    const alugueis = await Aluguel.obterTodos(orderBy);
     return res.status(200).json(alugueis);
   } catch (err) {
-    console.error(err.message);
-    res.status(err.statusCode).json({
+    console.log("error no todos:");
+    
+    console.error("sttaus code: "+err);
+    res.status(400).json({
+      message: err.message,
+      error: "Não foi possivel listar todos os alugueis",
+    });
+  }
+});
+
+// GET - Listar todos os aluguéis
+router.get("/ativos", async (req, res) => {
+  try {
+    const { orderBy } = req.query.orderBy ?? '';
+    const alugueis = await Aluguel.obterTodosDTO(orderBy);
+    return res.status(200).json(alugueis);
+  } catch (err) {
+    console.log("error no todos:");
+    
+    console.error("sttaus code: "+err);
+    res.status(400).json({
       message: err.message,
       error: "Não foi possivel listar todos os alugueis",
     });
@@ -22,7 +41,7 @@ router.get("/", async (req, res) => {
 });
 
 // Obter por id
-router.get(":id", async (req, res) => {
+router.get("id/:id", async (req, res) => {
   try {
     const aluguel = await Aluguel.obterPorId(req.params.id);
     return res.status(200).json(aluguel);
@@ -33,24 +52,24 @@ router.get(":id", async (req, res) => {
 });
 
 // obter pro cliente
-router.get(":nome", async (req, res) => {
+router.get("cliente/:nome", async (req, res) => {
   try {
     const aluguel = await Aluguel.obterPorNomeCliente(req.params.nome);
 
     return res.status(200).json(aluguel);
   } catch (err) {
     console.error(err.message);
-    return res.status(err.statusCode).json(err);
+    return res.status(400).json(err);
   }
 });
 //obter pelo o id do cliente
-router.get(":cliente_id", async (req, res) => {
+router.get("cliente/id/:cliente_id", async (req, res) => {
   try {
     const aluguel = await Aluguel.obterPorIdCliente(req.params.cliente_id);
     return res.status(200).json(aluguel);
   } catch (err) {
     console.error(err.message);
-    return res.status(statusCode).json(err);
+    return res.status(400).json(err);
   }
 });
 
@@ -63,7 +82,8 @@ router.post("/", async (req, res) => {
       roupa_id,
       data_aluguel,
       data_devolucao_prevista,
-      valor_total,
+      valor_taxa,
+      valor_total
     } = req.body;
     const aluguel = await Aluguel.criar({
       cliente_id,
@@ -71,13 +91,14 @@ router.post("/", async (req, res) => {
       data_aluguel,
       data_devolucao_prevista,
       valor_total,
-      usuario_id,
+      valor_taxa,
+      usuario_id
     });
 
     return res.status(201).json(aluguel);
   } catch (err) {
     console.error(err.message);
-    res.status(err.statusCode).json({
+    res.status(400).json({
       message: err.message,
       error: "Error ao criar aluguel: " + err,
     });
@@ -109,7 +130,7 @@ router.put("/:id", async (req, res) => {
     return res.status(200).json(aluguel);
   } catch (err) {
     console.error(err.message);
-    return res.status(statusCode).json(err);
+    return res.status(400).json(err);
   }
 });
 
