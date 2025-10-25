@@ -4,3 +4,4 @@
 /api/config/database.js
 /api/generate-hash.js
 schema.sql
+/.vscode
