@@ -1,0 +1,206 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title mb-0">
+            @if(!isEdit){
+              <i class="fas fa-plus-circle me-2"></i>
+            }
+            @if(isEdit){
+              <i class="fas fa-edit me-2"></i>
+            }
+            {{ isEdit ? 'Editar Roupa' : 'Cadastrar Nova Roupa' }}
+          </h3>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="onSubmit()" [formGroup]="roupaForm">
+            
+            <!-- Upload de Imagem -->
+            <div class="mb-4">
+              <p class="form-label" >Imagem da Roupa</p>
+              <label for="fileInput" class="upload-area">
+                <div class="upload-content">
+                  <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-muted"></i>
+                  <p class="mb-1">Clique para selecionar uma imagem</p>
+                  <small class="text-muted">Formatos: JPG, PNG, GIF (Max: 10MB)</small>
+                </div>
+                <input 
+                  formControlName="imagem_url"
+                  id="fileInput"
+                  type="file" 
+                  (change)="onFileSelected($event)"
+                  accept="image/*"
+                  hidden>
+              </label>
+              
+              <!-- Preview da Imagem -->
+               @if(previewUrl){
+              <div class="mt-3 text-center">
+                <img [src]="previewUrl" class="img-preview" alt="Preview">
+                <div class="mt-2">
+                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="previewUrl = null; selectedFile = null">
+                    <i class="fas fa-times me-1"></i>
+                    Remover Imagem
+                  </button>
+                </div>
+              </div>
+            }
+            </div>
+
+            <!-- Nome -->
+            <div class="mb-3">
+              <label for="nome" class="form-label">Nome da Roupa *</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="nome"
+                formControlName="nome"
+                [class.is-invalid]="roupaForm.get('nome')?.invalid && roupaForm.get('nome')?.touched"
+                placeholder="Ex: Vestido Longo Floral">
+                @if(roupaForm.get('nome')?.errors?.['required']){
+                  <div class="invalid-feedback">
+                    Nome é obrigatório.
+                  </div>
+                }
+                @if(roupaForm.get('nome')?.errors?.['minlength']){
+                  <div class="invalid-feedback">
+                    Nome deve ter pelo menos 3 caracteres.
+                  </div>
+                }
+            </div>
+
+            <!-- Descrição -->
+            <div class="mb-3">
+              <label for="descricao" class="form-label">Descrição *</label>
+              <textarea 
+                class="form-control" 
+                id="descricao"
+                formControlName="descricao"
+                rows="3"
+                [class.is-invalid]="roupaForm.get('descricao')?.invalid && roupaForm.get('descricao')?.touched"
+                placeholder="Descreva a roupa (material, cor, estilo, etc.)..."></textarea>
+                @if(roupaForm.get('descricao')?.errors?.['required']){
+                  <div class="invalid-feedback" >
+                    Descrição é obrigatória.
+                  </div>
+                }
+                @if(roupaForm.get('descricao')?.errors?.['minlength']){
+                  <div class="invalid-feedback">
+                    Descrição deve ter pelo menos 10 caracteres.
+                  </div>
+                }
+            </div>
+
+            <div class="row">
+              <!-- Tamanho -->
+              <div class="col-md-6 mb-3">
+                <label for="tamanho" class="form-label">Tamanho *</label>
+                <select 
+                  class="form-select" 
+                  id="tamanho"
+                  formControlName="tamanho"
+                  [class.is-invalid]="roupaForm.get('tamanho')?.invalid && roupaForm.get('tamanho')?.touched">
+                  @for(tamanho of tamanhos; track $index){
+                  <option [value]="tamanho">
+                    {{ tamanho }}
+                  </option>
+                }
+                </select>
+                <div class="invalid-feedback">
+                  Tamanho é obrigatório.
+                </div>
+              </div>
+
+              <!-- Categoria -->
+              <div class="col-md-6 mb-3">
+                <label for="categoria" class="form-label">Categoria *</label>
+                <select 
+                  class="form-select" 
+                  id="categoria"
+                  formControlName="categoria"
+                  [class.is-invalid]="roupaForm.get('categoria')?.invalid && roupaForm.get('categoria')?.touched">
+                  <option value="">Selecione uma categoria</option>
+                  @for (cat of categorias; track $index) {
+                    <option [value]="cat">
+                      {{ cat }}
+                    </option>
+                  }
+                </select>
+                <div class="invalid-feedback">
+                  Categoria é obrigatória.
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <!-- Preço de Aluguel -->
+              <div class="col-md-6 mb-3">
+                <label for="preco_aluguel" class="form-label">Preço de Aluguel (R$) *</label>
+                <div class="input-group">
+                  <span class="input-group-text">R$</span>
+                  <input 
+                    type="number" 
+                    class="form-control" 
+                    id="preco_aluguel"
+                    formControlName="preco_aluguel"
+                    [class.is-invalid]="roupaForm.get('preco_aluguel')?.invalid && roupaForm.get('preco_aluguel')?.touched"
+                    step="0.01"
+                    min="0"
+                    placeholder="0,00">
+                </div>
+                @if(roupaForm.get('preco_aluguel')?.errors?.['required']){
+                <div class="invalid-feedback" >
+                  Preço é obrigatório.
+                </div>
+                }
+                @if(roupaForm.get('preco_aluguel')?.errors?.['min']){
+                <div class="invalid-feedback" >
+                  Preço deve ser maior ou igual a zero.
+                </div>
+                }
+              </div>
+
+              <!-- Status -->
+              <div class="col-md-6 mb-3">
+                <label for="status" class="form-label">Status *</label>
+                <select 
+                  class="form-select" 
+                  id="status"
+                  formControlName="status"
+                  [class.is-invalid]="roupaForm.get('status')?.invalid && roupaForm.get('status')?.touched">
+                  <option value="disponivel">Disponível</option>
+                  <option value="manutencao">Em Manutenção</option>
+                  <option value="alugado">Alugado</option>
+                </select>
+                <div class="invalid-feedback">
+                  Status é obrigatório.
+                </div>
+              </div>
+            </div>
+
+            <!-- Botões -->
+            <div class="d-flex gap-2 justify-content-end mt-4">
+              <button 
+                type="button" 
+                class="btn btn-secondary" 
+                (click)="cancel()"
+                [disabled]="isLoading">
+                Cancelar
+              </button>
+              <button 
+                type="submit" 
+                class="btn btn-primary"
+                [disabled]="isLoading || !roupaForm.valid">
+                @if(isLoading){
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                {{ isLoading ? 'Salvando...' : (isEdit ? 'Atualizar Roupa' : 'Cadastrar Roupa') }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

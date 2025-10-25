@@ -1,0 +1,155 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title mb-0">
+            @if(!isEdit){
+            <i class="fas fa-user-plus me-2"></i>
+            } @else{
+            <i class="fas fa-user-edit me-2"></i>
+            }
+            {{ isEdit ? "Editar Cliente" : "Cadastrar Novo Cliente" }}
+          </h3>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="onSubmit()" [formGroup]="clienteForm">
+            <!-- Nome -->
+            <div class="mb-3">
+              <label for="nome" class="form-label">Nome Completo *</label>
+              <input
+                type="text"
+                class="form-control"
+                id="nome"
+                formControlName="nome"
+                [class.is-invalid]="
+                  clienteForm.get('nome')?.invalid &&
+                  clienteForm.get('nome')?.touched
+                "
+                placeholder="Ex: João Silva"
+              />
+              @if(clienteForm.get('nome')?.errors?.['required']){}
+              <div class="invalid-feedback">Nome é obrigatório.</div>
+              @if(clienteForm.get('nome')?.errors?.['minlength']){
+              <div class="invalid-feedback">
+                Nome deve ter pelo menos 3 caracteres.
+              </div>
+              }
+            </div>
+
+            <!-- Email -->
+            <div class="mb-3">
+              <label for="email" class="form-label">Email *</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                formControlName="email"
+                [class.is-invalid]="
+                  clienteForm.get('email')?.invalid &&
+                  clienteForm.get('email')?.touched
+                "
+                placeholder="exemplo@email.com"
+              />
+              @if(clienteForm.get('email')?.errors?.['required']){
+              <div class="invalid-feedback">Email é obrigatório.</div>
+              } @if(clienteForm.get('email')?.errors?.['email']){
+
+              <div class="invalid-feedback">Email inválido.</div>
+              }
+            </div>
+
+            <div class="row">
+              <!-- Telefone -->
+              <div class="col-md-6 mb-3">
+                <label for="telefone" class="form-label">Telefone</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="telefone"
+                  formControlName="telefone"
+                  placeholder="(11) 99999-9999"
+                />
+              </div>
+
+              <!-- CPF -->
+              <div class="col-md-6 mb-3">
+                <label for="cpf" class="form-label">CPF *</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="cpf"
+                  formControlName="cpf"
+                  (input)="formatCPF($event)"
+                  [class.is-invalid]="
+                    clienteForm.get('cpf')?.invalid &&
+                    clienteForm.get('cpf')?.touched
+                  "
+                  placeholder="000.000.000-00"
+                  maxlength="14"
+                />
+                @if(clienteForm.get('cpf')?.errors?.['required']){
+                    <div
+                    class="invalid-feedback"
+                    >
+                    CPF é obrigatório.
+                </div>
+            }
+            @if(clienteForm.get('cpf')?.errors?.['pattern']){
+                <div
+                class="invalid-feedback"
+                >
+                CPF inválido. Use o formato: 000.000.000-00
+            </div>
+        }
+              </div>
+            </div>
+
+            <!-- Endereço -->
+            <div class="mb-4">
+              <label for="endereco" class="form-label">Endereço</label>
+              <textarea
+                class="form-control"
+                id="endereco"
+                formControlName="endereco"
+                rows="3"
+                placeholder="Rua, número, bairro, cidade..."
+              ></textarea>
+            </div>
+
+            <!-- Botões -->
+            <div class="d-flex gap-2 justify-content-end">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                (click)="cancel()"
+                [disabled]="isLoading"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                [disabled]="isLoading || !clienteForm.valid"
+              >
+              @if(isLoading){
+
+                  <span
+                  class="spinner-border spinner-border-sm me-2"
+                  ></span>
+                }
+                {{
+                  isLoading
+                    ? "Salvando..."
+                    : isEdit
+                    ? "Atualizar Cliente"
+                    : "Cadastrar Cliente"
+                }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

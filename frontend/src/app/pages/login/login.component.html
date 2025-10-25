@@ -1,0 +1,108 @@
+<div class="login-container">
+  <div class="row justify-content-center align-items-center min-vh-100">
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white text-center py-4">
+          <i class="fas fa-tshirt fa-3x mb-3"></i>
+          <h2 class="mb-0">Loja de Roupas</h2>
+          <small>Sistema de Aluguel</small>
+        </div>
+        
+        <div class="card-body p-4">
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            
+            <!-- Email -->
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                formControlName="email"
+                [class.is-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+                placeholder="seu@email.com">
+              
+                @if (loginForm.get('email')?.errors?.['required'] && loginForm.get('email')?.touched) {
+                    <div class="invalid-feedback">
+                        Email é obrigatório.
+                    </div>
+                }
+                @if (loginForm.get('email')?.errors?.['email'] && loginForm.get('email')?.touched) {
+                    <div class="invalid-feedback" >
+                        Email inválido.
+                    </div>
+                }
+            </div>
+
+            <!-- Senha -->
+            <div class="mb-4">
+              <label for="senha" class="form-label">Senha</label>
+              <input
+                type="password"
+                class="form-control"
+                id="senha"
+                formControlName="senha"
+                [class.is-invalid]="loginForm.get('senha')?.invalid && loginForm.get('senha')?.touched"
+                placeholder="Sua senha">
+              
+            @if (loginForm.get('senha')?.errors?.['required'] && loginForm.get('senha')?.touched) {
+                <div class="invalid-feedback">
+                    Senha é obrigatória.
+                </div>
+            }
+            @if (loginForm.get('senha')?.errors?.['minlength'] && loginForm.get('senha')?.touched) {
+                <div class="invalid-feedback" >
+                    Senha deve ter pelo menos 3 caracteres.
+                </div>
+            }
+            </div>
+
+            <!-- Mensagem de Erro -->
+             @if (errorMessage) {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                 <i class="fas fa-exclamation-triangle me-2"></i>
+                 {{ errorMessage }}
+                 <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+            </div>
+            }
+
+            <!-- Botão Login -->
+            <button 
+              type="submit" 
+              class="btn btn-primary w-100 py-2"
+              [disabled]="isLoading">
+              
+              @if (isLoading) {
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+              }
+              @if (!isLoading) {
+                  <i class="fas fa-sign-in-alt me-2"></i>
+                    {{ isLoading ? 'Entrando...' : 'Entrar' }}
+            }
+            </button>
+
+          </form>
+
+          <!-- Informações -->
+          <div class="mt-4 text-center">
+            <small class="text-muted">
+              <i class="fas fa-info-circle me-1"></i>
+              Entre com suas credenciais fornecidas pelo administrador
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Credenciais de teste -->
+      <div class="mt-4 p-3 bg-light rounded">
+        <h6 class="text-center mb-2">Credenciais de Teste:</h6>
+        <div class="row text-center">
+          <div class="col-12">
+            <small class="text-muted">
+              <strong>Admin:</strong> {{"admin@loja.com / admin123"}} </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

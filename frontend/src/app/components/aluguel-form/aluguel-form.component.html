@@ -1,0 +1,220 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title mb-0">
+            <i class="fas fa-shopping-bag me-2"></i>
+            Novo Aluguel
+          </h3>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="onSubmit()" [formGroup]="aluguelForm">
+            <!-- Cliente -->
+            <div class="mb-3">
+              <label for="cliente_id" class="form-label">Cliente *</label>
+              <select
+                class="form-select"
+                id="cliente_id"
+                formControlName="cliente_id"
+                [class.is-invalid]="
+                  aluguelForm.get('cliente_id')?.invalid &&
+                  aluguelForm.get('cliente_id')?.touched
+                "
+              >
+                <option value="">Selecione um cliente</option>
+                @for (cliente of clientes; track $index) {
+                <option [value]="cliente.id">
+                  {{ cliente.nome }} - {{ cliente.email }}
+                </option>
+                }
+              </select>
+              <div class="invalid-feedback">Cliente é obrigatório.</div>
+            </div>
+
+            <!-- Roupa -->
+            <div class="mb-3">
+              <label for="roupa_id" class="form-label">Roupa *</label>
+              <select
+                class="form-select"
+                id="roupa_id"
+                formControlName="roupa_id"
+                (change)="onRoupaSelecionada()"
+                [class.is-invalid]="
+                  aluguelForm.get('roupa_id')?.invalid &&
+                  aluguelForm.get('roupa_id')?.touched
+                "
+              >
+                <option value="">Selecione uma roupa</option>
+                @for (roupa of roupasDisponiveis; track $index) {
+                <option [value]="roupa.id">
+                  {{ roupa.nome }} - {{ roupa.categoria }} ({{ roupa.tamanho }})
+                  - {{ formatCurrency(roupa.preco_aluguel) }}
+                </option>
+                }
+              </select>
+              <div class="invalid-feedback">Roupa é obrigatória.</div>
+            </div>
+
+            <!-- Detalhes da Roupa Selecionada -->
+            @if(roupaSelecionada){
+            <div class="card mb-3 bg-light">
+              <div class="card-body">
+                <h6 class="card-title">Detalhes da Roupa Selecionada</h6>
+                <div class="row">
+                  @if(roupaSelecionada.imagem_url){
+                  <div class="col-md-4 text-center">
+                    <img
+                      [src]="roupaSelecionada.imagem_url"
+                      class="img-fluid rounded"
+                      [alt]="roupaSelecionada.nome"
+                      style="max-height: 100px"
+                    />
+                  </div>
+                  }
+                  <div class="col-md-8">
+                    <p class="mb-1">
+                      <strong>{{ roupaSelecionada.nome }}</strong>
+                    </p>
+                    <p class="mb-1 text-muted small">
+                      {{ roupaSelecionada.descricao }}
+                    </p>
+                    <p class="mb-1">
+                      <span class="badge bg-secondary me-2">{{
+                        roupaSelecionada.categoria
+                      }}</span>
+                      <span class="badge bg-info">{{
+                        roupaSelecionada.tamanho
+                      }}</span>
+                    </p>
+                    <p class="mb-0 h5 text-success">
+                      {{ formatCurrency(roupaSelecionada.preco_aluguel) }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            }
+
+            <div class="row">
+              <!-- Data do Aluguel -->
+              <div class="col-md-6 mb-3">
+                <label for="data_aluguel" class="form-label"
+                  >Data do Aluguel *</label
+                >
+                <input
+                  type="date"
+                  class="form-control"
+                  id="data_aluguel"
+                  formControlName="data_aluguel"
+                  (change)="onDataAluguelChange()"
+                  [class.is-invalid]="
+                    aluguelForm.get('data_aluguel')?.invalid &&
+                    aluguelForm.get('data_aluguel')?.touched
+                  "
+                />
+                <div class="invalid-feedback">
+                  Data do aluguel é obrigatória.
+                </div>
+              </div>
+
+              <!-- Data de Devolução Prevista -->
+              <div class="col-md-6 mb-3">
+                <label for="data_devolucao_prevista" class="form-label"
+                  >Data de Devolução Prevista *</label
+                >
+                <input
+                  type="date"
+                  class="form-control"
+                  id="data_devolucao_prevista"
+                  formControlName="data_devolucao_prevista"
+                  [class.is-invalid]="
+                    aluguelForm.get('data_devolucao_prevista')?.invalid &&
+                    aluguelForm.get('data_devolucao_prevista')?.touched
+                  "
+                />
+                <div class="invalid-feedback">
+                  Data de devolução é obrigatória.
+                </div>
+              </div>
+            </div>
+
+            <!-- Valores  -->
+            <div class="row">
+              <!-- Valor Total -->
+              <div class="col-md-6 mb-3">
+                <label for="valor_total" class="form-label"
+                  >Valor Total *</label
+                >
+                <div class="input-group">
+                  <span class="input-group-text">R$</span>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="valor_total"
+                    formControlName="valor_total"
+                    [class.is-invalid]="
+                      aluguelForm.get('valor_total')?.invalid &&
+                      aluguelForm.get('valor_total')?.touched
+                    "
+                    step="0.01"
+                    min="0"
+                    readonly
+                  />
+                </div>
+                @if(aluguelForm.get('valor_total')?.errors?.['required']){
+                <div class="invalid-feedback">Valor é obrigatório.</div>
+                } @if(aluguelForm.get('valor_total')?.errors?.['min']){
+                <div class="invalid-feedback">
+                  Valor deve ser maior ou igual a zero.
+                </div>
+                }
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="valor_taxa" class="form-label" title="taxa de atrasos por dia é em reais"  >Taxa Atrasado *</label>
+                <div class="input-group">
+                  <span class="input-group-text">R$</span>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="valor_taxa"
+                    placeholder="0,00"
+                    formControlName="valor_taxa"
+                    [class.is-invalid]="
+                      aluguelForm.get('valor_taxa')?.invalid &&
+                      aluguelForm.get('valor_taxa')?.touched
+                    "
+                  />
+                </div>
+                @if(aluguelForm.get('valor_taxa')?.errors?.['required']){
+                <div class="invalid-feedback">Taxa é obrigatório.</div>
+                }
+              </div>
+            </div>
+            <!-- Botões -->
+            <div class="d-flex gap-2 justify-content-end">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                (click)="cancel()"
+                [disabled]="isLoading"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                [disabled]="isLoading || !aluguelForm.valid"
+              >
+                @if(isLoading){
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                {{ isLoading ? "Processando..." : "Realizar Aluguel" }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

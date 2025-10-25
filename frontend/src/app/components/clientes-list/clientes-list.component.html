@@ -1,0 +1,101 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+      <i class="fas fa-users me-2"></i>
+      Gerenciar Clientes
+    </h2>
+    <button class="btn btn-primary" routerLink="/clientes/novo">
+      <i class="fas fa-plus me-2"></i>
+      Novo Cliente
+    </button>
+  </div>
+
+  <!-- Loading -->
+  @if(isLoading){
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Carregando...</span>
+    </div>
+    <p class="mt-2">Carregando clientes...</p>
+  </div>
+  }
+
+  <!-- Erro -->
+  @if(errorMessage){
+  <div class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+  }
+  <!-- Tabela de Clientes -->
+  @if(!isLoading && !errorMessage){
+  <div class="card">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Email</th>
+              <th>Telefone</th>
+              <th>CPF</th>
+              <th>Endereço</th>
+              <th>Cadastrado em</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for(cliente of clientes; track $index){
+            <tr>
+              <td>
+                <strong>{{ cliente.nome }}</strong>
+              </td>
+              <td>{{ cliente.email }}</td>
+              <td>{{ cliente.telefone || "-" }}</td>
+              <td>{{ cliente.cpf }}</td>
+              <td>
+                @if(cliente.endereco){
+                <span>
+                  {{ cliente.endereco | slice : 0 : 30
+                  }}{{ cliente.endereco.length > 30 ? "..." : "" }}
+                </span>
+                } @else {
+                <ng-template #noAddress>-</ng-template>
+                }
+              </td>
+              <td>{{ cliente.created_at | date : "dd/MM/yyyy" }}</td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <button
+                    class="btn btn-outline-primary"
+                    [routerLink]="['/clientes/editar', cliente.id]"
+                    title="Editar"
+                  >
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button
+                    class="btn btn-outline-danger"
+                    (click)="deleteCliente(cliente.id!)"
+                    title="Excluir"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if(clientes.length === 0) {
+      <div class=" d-flex flex-column align-items-center justify-content-center py-4">
+        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">Nenhum cliente cadastrado</h5>
+        <p class="text-muted">
+          Clique em "Novo Cliente" para adicionar o primeiro cliente.
+        </p>
+      </div>
+      }
+    </div>
+  </div>
+  }
+</div>

@@ -1,0 +1,156 @@
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ICliente } from '../../models/icliente.model';
+import { IRoupa } from '../../models/iroupa.model';
+import { AluguelService } from '../../services/aluguel.service';
+import { RoupaService } from '../../services/roupa.service';
+import { ClienteService } from '../../services/cliente.service';
+import { ActivatedRoute, Router } from '@angular/router';
+
+@Component({
+  selector: 'app-aluguel-form',
+  imports: [ReactiveFormsModule],
+  templateUrl: './aluguel-form.component.html',
+  styleUrl: './aluguel-form.component.css'
+})
+export class AluguelFormComponent implements OnInit {
+  aluguelForm: FormGroup;
+  isLoading = false;
+  clientes: ICliente[] = [];
+  roupasDisponiveis: IRoupa[] = [];
+  roupaSelecionada: IRoupa | null = null;
+
+  constructor(
+    private fb: FormBuilder,
+    private aluguelService: AluguelService,
+    private roupaService: RoupaService,
+    private clienteService: ClienteService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {
+    this.aluguelForm = this.fb.group({
+      cliente_id: ['', Validators.required],
+      roupa_id: ['', Validators.required],
+      data_aluguel: [new Date().toISOString().split('T')[0], Validators.required],
+      data_devolucao_prevista: ['', Validators.required],
+      valor_total: [0, [Validators.required, Validators.min(0)]],
+      valor_taxa: ["", Validators.required],
+    });
+  }
+
+  ngOnInit(): void {
+    this.loadClientes();
+    this.loadRoupasDisponiveis();
+    
+    // Verificar se há uma roupa pré-selecionada via query params
+    this.route.queryParams.subscribe(params => {
+      if (params['roupa_id']) {
+        this.aluguelForm.patchValue({
+          roupa_id: params['roupa_id']
+        });
+        this.onRoupaSelecionada();
+      }
+    });
+  }
+
+  loadClientes(): void {
+    this.clienteService.getClientes().subscribe({
+      next: (clientes) => {
+        this.clientes = clientes;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar clientes:', error);
+        alert('Erro ao carregar lista de clientes');
+      }
+    });
+  }
+
+  loadRoupasDisponiveis(): void {
+    this.roupaService.getRoupas().subscribe({
+      next: (roupas) => {
+        this.roupasDisponiveis = roupas.filter(r => r.status === 'disponivel');
+      },
+      error: (error) => {
+        console.error('Erro ao carregar roupas:', error);
+        alert('Erro ao carregar lista de roupas');
+      }
+    });
+  }
+
+  onRoupaSelecionada(): void {
+    const roupaId = this.aluguelForm.get('roupa_id')?.value;
+    const roupa = this.roupasDisponiveis.find(r => r.id == roupaId);
+    
+    if (roupa) {
+      this.roupaSelecionada = roupa;
+      
+      // Calcular data de devolução (7 dias a partir de hoje)
+      const dataAluguel = new Date(this.aluguelForm.get('data_aluguel')?.value);
+      const dataDevolucao = new Date(dataAluguel);
+      dataDevolucao.setDate(dataDevolucao.getDate() + 7);
+      
+      this.aluguelForm.patchValue({
+        data_devolucao_prevista: dataDevolucao.toISOString().split('T')[0],
+        valor_total: roupa.preco_aluguel
+      });
+    } else {
+      this.roupaSelecionada = null;
+    }
+  }
+
+  onDataAluguelChange(): void {
+    if (this.roupaSelecionada) {
+      const dataAluguel = new Date(this.aluguelForm.get('data_aluguel')?.value);
+      const dataDevolucao = new Date(dataAluguel);
+      dataDevolucao.setDate(dataDevolucao.getDate() + 7);
+      
+      this.aluguelForm.patchValue({
+        data_devolucao_prevista: dataDevolucao.toISOString().split('T')[0]
+      });
+    }
+  }
+
+  onSubmit(): void {
+    if (this.aluguelForm.valid) {
+      this.isLoading = true;
+
+      this.aluguelService.createAluguel(this.aluguelForm.value).subscribe({
+        next: (response) => {
+          this.isLoading = false;
+          alert('Aluguel realizado com sucesso!');
+          this.router.navigate(['/dashboard']);
+        },
+        error: (error) => {
+          this.isLoading = false;
+          console.error('Erro ao criar aluguel:', error);
+          alert(error.error?.error || 'Erro ao realizar aluguel');
+        }
+      });
+    } else {
+      this.markFormGroupTouched();
+    }
+  }
+
+  teste(){
+    const {valor_taxa} = this.aluguelForm.value;
+    console.log(valor_taxa);
+    
+  }
+
+  private markFormGroupTouched(): void {
+    Object.keys(this.aluguelForm.controls).forEach(key => {
+      this.aluguelForm.get(key)?.markAsTouched();
+    });
+  }
+
+  cancel(): void {
+    this.router.navigate(['/roupas']);
+  }
+
+  formatCurrency(value: number): string {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  }
+}

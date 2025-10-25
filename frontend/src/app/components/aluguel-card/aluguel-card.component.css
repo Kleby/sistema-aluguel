@@ -1,0 +1,18 @@
+.roupa-card {
+  transition: transform 0.2s ease-in-out;
+  cursor: pointer;
+  border: 1px solid #e9ecef;
+}
+
+.roupa-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+.no-outline{
+    outline: none;
+    border: none;
+}
+
+.text-left{
+    text-align: left;
+}

@@ -1,0 +1,285 @@
+<div class="container-fluid py-4">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h1 class="h3 mb-1">
+            <i class="fas fa-tachometer-alt text-primary me-2"></i>
+            Dashboard
+          </h1>
+          <p class="text-muted mb-0">
+            Bem-vindo, {{ user?.nome }}! Aqui está o resumo do seu negócio.
+          </p>
+        </div>
+
+        <!-- Alerta de expiração -->
+        @if(isExpiringSoon()){
+        <div
+          class="alert alert-warning alert-dismissible fade show mb-0"
+          role="alert"
+        >
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          Sua conta expira em {{ getDaysUntilExpiration() }} dias
+        </div>
+        }
+        <!-- Expirda -->
+        @if(isExpired()){
+        <div
+          class="alert alert-danger alert-dismissible fade show mb-0"
+          role="alert"
+        >
+          <i class="fas fa-ban me-2"></i>
+          Sua conta expirou. Entre em contato com o administrador.
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if(isLoading){
+
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Carregando...</span>
+    </div>
+    <p class="mt-2">Carregando dashboard...</p>
+  </div>
+
+  }
+  <!-- Estatísticas -->
+
+  @if(!isLoading){
+  <div class="row g-4 mb-4">
+    <!-- Total de Roupas -->
+    <app-dashboard-link-cards
+    class="col-xl-3 col-md-6"
+      pageLink="/roupas"
+      cardTitle="Total de Roupas"
+      [totalStats]="stats.totalRoupas"
+      [availableStats]="stats.roupasDisponiveis + ' disponíveis'"
+      [unavailableStats]="stats.roupasAlugadas + ' alugadas'"
+      faIcon="fa-tshirt"
+      iconBg="primary"
+      textColor="text-primary"
+      unavailabeColor="success"
+    />
+    <!-- Aluguéis Ativos -->
+    <app-dashboard-link-cards
+    class="col-xl-3 col-md-6"
+      pageLink="/alugueis"
+      cardTitle="Aluguéis Ativos"
+      [totalStats]="stats.alugueisAtivos"
+      [availableStats]="stats.totalAlugueis + ' no total'"
+      [unavailableStats]="stats.alugueisAtrasados + ' atrasados'"
+      faIcon="fa-shopping-bag"
+      iconBg="success"
+      textColor="text-success"
+      unavailabeColor="warning"
+    />
+    <!-- Roupas Disponíveis -->
+    <app-dashboard-link-cards
+    class="col-xl-3 col-md-6"
+      pageLink="/disponiveis"
+      cardTitle="Disponíveis"
+      [totalStats]="stats.roupasDisponiveis"
+      [availableStats]="stats.roupasManutencao + ' em manutenção'"
+      faIcon="fa-check-circle"
+      iconBg="info"
+      textColor="text-danger"
+    />
+     <!-- Total de Clientes -->
+    @if(user?.tipo === 'admin'){
+    <app-dashboard-link-cards
+    class="col-xl-3 col-md-6"
+      pageLink="/clientes"
+      cardTitle="Total de Clientes"
+      [totalStats]="stats.totalClientes"
+      availableStats="Clientes cadastrados"
+      faIcon="fa-users"
+      iconBg="secondary"
+      textColor=""
+      [labelIcon]="true"
+    />
+    }
+  </div>
+  }
+  <!-- Ações Rápidas -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-bolt me-2"></i>
+            Ações Rápidas
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-auto">
+              <button
+                class="btn btn-primary"
+                (click)="navigateTo('/roupas/nova')"
+              >
+                <i class="fas fa-plus me-2"></i>
+                Nova Roupa
+              </button>
+            </div>
+            <div class="col-auto">
+              <button
+                class="btn btn-success"
+                (click)="navigateTo('/alugueis/novo')"
+              >
+                <i class="fas fa-shopping-bag me-2"></i>
+                Novo Aluguel
+              </button>
+            </div>
+            @if(user?.tipo === 'admin'){
+            <div class="col-auto">
+              <button
+                class="btn btn-warning"
+                (click)="navigateTo('/clientes/novo')"
+              >
+                <i class="fas fa-user-plus me-2"></i>
+                Novo Cliente
+              </button>
+            </div>
+            }
+            <div class="col-auto">
+              <button class="btn btn-info" (click)="navigateTo('/roupas')">
+                <i class="fas fa-list me-2"></i>
+                Ver Catálogo
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conteúdo Principal -->
+  <div class="row g-4">
+    <!-- Aluguéis Recentes -->
+    <div class="col-xl-8">
+      <div class="card">
+        <div
+          class="card-header d-flex justify-content-between align-items-center"
+        >
+          <h5 class="card-title mb-0">
+            <i class="fas fa-history me-2"></i>
+            Aluguéis Recentes
+          </h5>
+          <button
+            class="btn btn-sm btn-outline-primary"
+            (click)="navigateTo('/alugueis')"
+          >
+            Ver Todos
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Roupa</th>
+                  <th>Data Aluguel</th>
+                  <th>Devolução</th>
+                  <th>Valor</th>
+                  <th>Situação</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for(aluguel of recentAlugueis; track $index){
+                <tr class="align-middle">
+                  <td>
+                    <strong>{{ aluguel.cliente_nome }}</strong>
+                  </td>
+                  <td>{{ aluguel.roupa_nome }}</td>
+                  <td>{{ aluguel.data_aluguel | formatDate }}</td>
+                  <td>
+                    <span
+                      [class.text-danger]="
+                        isDateOverdue(aluguel.data_devolucao_prevista) &&
+                        aluguel.status === 'ativo'
+                      "
+                    >
+                      {{ aluguel.data_devolucao_prevista | formatDate }}
+                    </span>
+                  </td>
+                  <td>
+                    <strong>{{ formatCurrency(aluguel.valor_total) }}</strong>
+                  </td>
+                  <td>
+                    <span
+                      class="badge"
+                      [class]="'badge ' + getStatusBadgeClass(aluguel.situacao)"
+                    >
+                      {{ getStatusText(aluguel.situacao) }}
+                    </span>
+                  </td>
+                </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          @if(recentAlugueis.length === 0){
+          <div class="text-center py-4">
+            <i class="fas fa-shopping-bag fa-2x text-muted mb-3"></i>
+            <p class="text-muted mb-0">Nenhum aluguel recente</p>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Roupas em Destaque -->
+    <div class="col-xl-4">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-star me-2"></i>
+            Roupas em Destaque
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            @for (roupa of roupasPopulares; track $index) {
+            <div class="col-6">
+              <div class="card h-100 roupa-card">
+                <img
+                  [src]="roupa.imagem_url || 'assets/placeholder-roupa.jpg'"
+                  class="card-img-top"
+                  [alt]="roupa.nome"
+                  style="height: 120px; object-fit: cover"
+                />
+                <div class="card-body p-2">
+                  <h6 class="card-title mb-1">{{ roupa.nome }}</h6>
+                  <p class="card-text mb-1">
+                    <small class="text-muted"
+                      >{{ roupa.categoria }} • {{ roupa.tamanho }}</small
+                    >
+                  </p>
+                  <p class="card-text mb-0">
+                    <strong class="text-success">{{
+                      formatCurrency(roupa.preco_aluguel)
+                    }}</strong>
+                  </p>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+          @if(roupasPopulares.length === 0){
+          <div class="text-center py-4">
+            <i class="fas fa-tshirt fa-2x text-muted mb-3"></i>
+            <p class="text-muted mb-0">Nenhuma roupa em destaque</p>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
