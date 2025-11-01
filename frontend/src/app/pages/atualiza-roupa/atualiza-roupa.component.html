@@ -1,0 +1,314 @@
+<div class="container mt-3">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title mb-0">
+            <i class="fas fa-edit me-2"></i>
+            Editar Roupa
+          </h3>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="onSubmit()" [formGroup]="updateForm">
+            <!-- Upload de Imagem -->
+            <div class="mb-2 text-center  ">
+              <p class="form-label mb-3 fs-5 my-2">Imagem da Roupa</p>
+              <label for="fileInput" class="upload-area w-100">
+                <div class="upload-content ">
+                  <div class="w-100 tx">
+                    <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-muted"></i>
+                  </div>
+                  <p class="mb-1">Clique para selecionar uma imagem</p>
+                  <small class="text-muted"
+                    >Formatos: JPG, PNG, GIF (Max: 10MB)</small
+                  >
+                </div>
+                <input
+                  id="fileInput"
+                  type="file"
+                  (change)="onFileSelected($event)"
+                  accept="image/*"
+                  hidden
+                />
+                
+              </label>
+              <!-- Preview da Imagem -->
+              @if(previewUrl){
+              <div class="mt-3 text-center">
+                <img [src]="previewUrl" class="img-preview" alt="Preview" />
+                <div class="mt-2">
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="previewUrl = null; selectedFile = null"
+                  >
+                    <i class="fas fa-times me-1"></i>
+                    Remover Imagem
+                  </button>
+                </div>
+              </div>
+              }
+            </div>
+
+            <!-- Nome -->
+            <div class="mb-2">
+              <label for="nome" class="form-label mb-1 mb-1"
+                >Nome da Roupa *</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="nome"
+                formControlName="nome"
+                [class.is-invalid]="
+                  updateForm.get('nome')?.invalid &&
+                  updateForm.get('nome')?.touched
+                "
+                placeholder="Ex: Vestido Longo Floral"
+              />
+              @if(updateForm.get('nome')?.errors?.['required']){
+              <div class="invalid-feedback">Nome é obrigatório.</div>
+              } @if(updateForm.get('nome')?.errors?.['minlength']){
+              <div class="invalid-feedback">
+                Nome deve ter pelo menos 3 caracteres.
+              </div>
+              }
+            </div>
+
+            <!-- Descrição -->
+            <div class="mb-3">
+              <label for="descricao" class="form-label mb-1">Descrição *</label>
+              <textarea
+                class="form-control"
+                id="descricao"
+                formControlName="descricao"
+                rows="3"
+                [class.is-invalid]="
+                  updateForm.get('descricao')?.invalid &&
+                  updateForm.get('descricao')?.touched
+                "
+                placeholder="Descreva a roupa (material, cor, estilo, etc.)..."
+              ></textarea>
+              @if(updateForm.get('descricao')?.errors?.['required']){
+              <div class="invalid-feedback">Descrição é obrigatória.</div>
+              } @if(updateForm.get('descricao')?.errors?.['minlength']){
+              <div class="invalid-feedback">
+                Descrição deve ter pelo menos 10 caracteres.
+              </div>
+              }
+            </div>
+
+            <div class="row">
+              <!-- Tamanho -->
+              <div class="col-md-6 mb-3">
+                <label for="tamanho" class="form-label mb-1">Tamanho *</label>
+                <select
+                  class="form-select"
+                  id="tamanho"
+                  formControlName="tamanho_id"
+                  [class.is-invalid]="
+                    updateForm.get('tamanho_id')?.invalid &&
+                    updateForm.get('tamanho_id')?.touched
+                  "
+                >
+                  <option value="-1" [selected]="true">
+                    -- Selecione um tamanho --
+                  </option>
+
+                  @for(tamanho of roupasTamanhos; track $index){
+                  <option [value]="tamanho.id">
+                    {{ tamanho.nome }}
+                  </option>
+                  }
+                </select>
+                <div class="invalid-feedback">Tamanho é obrigatório.</div>
+              </div>
+
+              <!-- Categoria -->
+              <div class="col-md-6 mb-3">
+                <label for="categoria" class="form-label mb-1"
+                  >Categoria *</label
+                >
+                <select
+                  class="form-select"
+                  id="categoria"
+                  formControlName="categoria_id"
+                  [class.is-invalid]="
+                    updateForm.get('categoria_id')?.invalid &&
+                    updateForm.get('categoria_id')?.touched
+                  "
+                >
+                  <option value="-1">-- Selecione uma categoria --</option>
+                  @for (cat of roupasCategorias ; track $index) {
+                  <option [value]="cat.id">
+                    {{ cat.nome }}
+                  </option>
+                  }
+                </select>
+                <div class="invalid-feedback">Categoria é obrigatória.</div>
+              </div>
+            </div>
+
+            <div class="row">
+              <!-- Preço de compra -->
+              <div class="col-md-6 mb-3">
+                <label for="preco_compra" class="form-label mb-1"
+                  >Preço de Compra (R$) *</label
+                >
+                <div class="input-group">
+                  <span class="input-group-text">R$</span>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="preco_compra"
+                    formControlName="preco_compra"
+                    [class.is-invalid]="
+                      updateForm.get('preco_compra')?.invalid &&
+                      updateForm.get('preco_compra')?.touched
+                    "
+                    step="0.01"
+                    min="0"
+                    placeholder="0,00"
+                    #valorCompraInput
+                  />
+                </div>
+                @if(updateForm.get('preco_compra')?.errors?.['required']){
+                <div class="invalid-feedback">Preço é obrigatório.</div>
+                } @if(updateForm.get('preco_compra')?.errors?.['min']){
+                <div class="invalid-feedback">
+                  Preço de Compra deve ser maior ou igual a zero.
+                </div>
+                }
+              </div>
+              <!-- Preço de Aluguel -->
+              <div class="col-md-6 mb-3">
+                <label for="preco_aluguel" class="form-label mb-1"
+                  >Preço de Aluguel (R$) *</label
+                >
+                <div class="input-group">
+                  <span class="input-group-text">R$</span>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="preco_aluguel"
+                    formControlName="preco_aluguel"
+                    [class.is-invalid]="
+                      updateForm.get('preco_aluguel')?.invalid &&
+                      updateForm.get('preco_aluguel')?.touched
+                    "
+                    step="0.01"
+                    min="0"
+                    placeholder="0,00"
+                  />
+                </div>
+                @if(updateForm.get('preco_aluguel')?.errors?.['required']){
+                <div class="invalid-feedback">Preço é obrigatório.</div>
+                } @if(updateForm.get('preco_aluguel')?.errors?.['min']){
+                <div class="invalid-feedback">
+                  Preço deve ser maior ou igual a zero.
+                </div>
+                }
+              </div>
+
+              <!-- Rentabilidade -->
+              <div class="col-md-6 mb-3">
+                <label for="rentabilidade" class="form-label mb-1"
+                  >Rentabilidade</label
+                >
+                <div class="input-group">
+                  <span class="input-group-text">%</span>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="rentabilidade"
+                    formControlName="rentabilidade"
+                    min="0"
+                    [value]="getRetabilidadeValue()"
+                    (input)="onChangeValorAluguel()"
+                    (click)="focusPrecoCompra()"
+                    step="0.5"
+                    min="0"
+                    placeholder="0,0"
+                  />
+                </div>
+              </div>
+
+              <!-- Quantidade -->
+              <div class="col-md-6 mb-3">
+                <label for="quantidade" class="form-label mb-1"
+                  >Quantidade*</label
+                >
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="fa-solid fa-boxes-packing"></i>
+                  </span>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="quantidade"
+                    formControlName="quantidade"
+                    [class.is-invalid]="
+                      updateForm.get('quantidade')?.invalid &&
+                      updateForm.get('quantidade')?.touched
+                    "
+                    step="1"
+                    min="0"
+                    placeholder="0"
+                  />
+                </div>
+                @if(updateForm.get('quantidade')?.errors?.['required']){
+                <div class="invalid-feedback">Quantidade é obrigatório.</div>
+                } @if(updateForm.get('quantidade')?.errors?.['min']){
+                <div class="invalid-feedback">
+                  Quantidade deve ser maior ou igual a zero.
+                </div>
+                }
+              </div>
+            </div>
+
+            <!-- Status -->
+            <div class="col-md-6 mb-2">
+              <label for="status" class="form-label mb-1">Status *</label>
+              <select
+                class="form-select"
+                id="status"
+                formControlName="status"
+                [class.is-invalid]="
+                  updateForm.get('status')?.invalid &&
+                  updateForm.get('status')?.touched
+                "
+              >
+                <option value="disponivel">Disponível</option>
+                <option value="manutencao">Em Manutenção</option>
+                <option value="alugado">Alugado</option>
+              </select>
+              <div class="invalid-feedback">Status é obrigatório.</div>
+            </div>
+
+            <!-- Botões -->
+            <div class="d-flex gap-2 justify-content-end mt-4">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                (click)="cancel()"
+                [disabled]="isLoading"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                [disabled]="isLoading || !updateForm.valid"
+              >
+                @if(isLoading){
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                {{ isLoading ? "Salvando..." : "Atualizar Roupa" }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

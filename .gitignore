@@ -3,5 +3,9 @@
 /api/.env
 /api/config/database.js
 /api/generate-hash.js
+/api/.wwebjs_auth
+/api/logs
+/api/sessions
+/api/tokens
 schema.sql
 /.vscode

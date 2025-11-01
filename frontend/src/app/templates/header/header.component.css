@@ -1,0 +1,67 @@
+.navbar-brand {
+  font-weight: 600;
+}
+
+.brand-link:hover{
+      /* 1. Definir o gradiente como imagem de fundo */
+    background-image: linear-gradient(to bottom, #ffffff, #b5e4f4 ,#3B82F6); 
+    /* max-height: 24px;
+    max-width: 175px; */
+    
+    /* 2. Recortar o fundo para o formato do texto */
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    /* 3. Tornar a cor do texto transparente para revelar o fundo recortado */
+    -webkit-text-fill-color: transparent;
+    text-fill-color: transparent;
+
+    /* Propriedades adicionais para melhor visualização */
+    font-weight: bold;
+    display: inline-block; 
+}
+.nav-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition-duration: 400ms;
+}
+
+
+.nav-link.active{
+  font-weight: 600;
+  transform: translateY(0);
+  color: #fff;
+}
+
+.nav-link.active:hover{
+  transform: translateY(0);
+}
+
+.nav-link:hover{
+  transform: translateY(2px);
+  color: #dfecff;
+}
+
+.dropdown-menu {
+  border: none;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.badge {
+  font-size: 0.6rem;
+}
+
+@media (max-width: 991px) {
+  .nav-link {
+    /* align-items: flex-start; */
+    /* justify-content: center; */
+    flex-direction: row;  
+  }
+  .nav-item{
+  }
+
+  .link-title{
+    margin-left: 3px;
+  }
+}

@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { IRoupa } from '../../models/iroupa.model';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { RoupaService } from '../../services/roupa.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -8,6 +7,8 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { IRoupaOptions } from '../../models/iroupas-options.model';
+import { RoupaOptionsService } from '../../services/roupa-options.service';
 
 @Component({
   selector: 'app-roupa-form',
@@ -23,54 +24,95 @@ export class RoupaFormComponent implements OnInit {
   selectedFile: File | null = null;
   previewUrl: string | ArrayBuffer | null = null;
 
-  tamanhos = ['PP', 'P', 'M', 'G', 'GG'];
-  categorias = [
-    'Vestido',
-    'Blusa',
-    'Calça',
-    'Saia',
-    'Casaco',
-    'Roupa Íntima',
-    'Acessório',
-  ];
+  @ViewChild('valorCompraInput') valorCompraInput!: ElementRef;
+
+  private readonly PERCENTAGEM = 0.01;
+
+  status = ['disponivel', 'alugado', 'manutencao'];
+
+
+  roupasTamanhos: IRoupaOptions[] = [];
+  roupasCategorias: IRoupaOptions[] = [];
 
   constructor(
     private fb: FormBuilder,
     private roupaService: RoupaService,
-    private route: ActivatedRoute,
+    private roupaOptionsService: RoupaOptionsService,
+    // private route: ActivatedRoute,
     private router: Router
   ) {
     this.roupaForm = this.fb.group({
       nome: ['', [Validators.required, Validators.minLength(3)]],
       descricao: ['', [Validators.required, Validators.minLength(10)]],
-      tamanho: ['M', Validators.required],
-      categoria: ['', Validators.required],
-      preco_aluguel: [0, [Validators.required, Validators.min(0)]],
+      tamanho_id: [-1, Validators.required],
+      categoria_id: [-1, Validators.required],
+      preco_compra: ['', [Validators.required, Validators.min(0)]],
+      preco_aluguel: ['', [Validators.required, Validators.min(0)]],
+      rentabilidade: ['', [Validators.min(0)]],
       status: ['disponivel', Validators.required],
-      imagem_url: [''],
+      quantidade: [1, [Validators.required, Validators.min(1)]],
+      imagem_url: [],
     });
   }
 
   ngOnInit(): void {
-    this.route.params.subscribe((params) => {
-      if (params['id']) {
-        this.isEdit = true;
-        this.roupaId = +params['id'];
-        this.loadRoupa(this.roupaId);
-      }
-    });
+    // this.loadRoupaOptions();
+    this.roupasTamanhos = this.roupaService.getTamanhosMock();
+    this.roupasCategorias = this.roupaService.getCategoriasMock();
   }
 
-  loadRoupa(id: number): void {
-    this.roupaService.getRoupa(id).subscribe({
-      next: (roupa) => {
-        this.roupaForm.patchValue(roupa);
-        this.previewUrl = roupa.imagem_url ?? '';
-      },
-      error: (error) => {
-        console.error('Erro ao carregar roupa:', error);
-        alert('Erro ao carregar dados da roupa');
-      },
+  focusPrecoCompra() {
+    if (!this.roupaForm.get('preco_compra')?.value) {
+      this.valorCompraInput.nativeElement.focus();
+    }
+  }
+
+  onChangeValorAluguel() {
+    const rentabilidade = this.roupaForm.get('rentabilidade')?.value;
+    const precoCompra = this.roupaForm.get('preco_compra')?.value;
+    this.roupaForm
+      .get('preco_aluguel')
+      ?.setValue(rentabilidade * precoCompra * this.PERCENTAGEM);
+  }
+
+  getRetabilidadeValue(): number {
+    return parseFloat(
+      (
+        (this.roupaForm.get('preco_aluguel')?.value ?? 1) /
+        (this.roupaForm.get('preco_compra')?.value * this.PERCENTAGEM || 1)
+      ).toFixed(2)
+    );
+  }
+
+  loadRoupaOptions(): Promise<void> {
+    return new Promise((resolve) => {
+      this.roupaOptionsService.obterRoupaCategorias().subscribe({
+        next: (categorias: IRoupaOptions[]) => {
+          this.roupasCategorias = categorias;
+          return resolve();
+        },
+        error: (error) => {
+          console.error('Erro ao carregar roupas populares:', error);
+          return resolve();
+        },
+        complete: () => {
+          // Busca os tamanhos
+          this.roupaOptionsService.obterRoupaTamanhos().subscribe({
+            next: (tamanhos: IRoupaOptions[]) => {
+              this.roupasTamanhos = tamanhos;
+              return resolve();
+            },
+            error: (err) => {
+              console.error('Erro ao carregar tamanhos', err);
+              return resolve();
+            },
+            complete: () => {
+              this.isLoading = false;
+              return resolve();
+            },
+          });
+        },
+      });
     });
   }
 
@@ -100,6 +142,19 @@ export class RoupaFormComponent implements OnInit {
     }
   }
 
+  onSubmitMock(){
+    if(this.roupaForm.valid){
+      this.isLoading = true; 
+      this.roupaService.addRoupaMock(this.roupaForm.value);
+          this.isLoading = false;
+          alert('Roupa cadastrada com sucesso!');
+          this.router.navigate(['/roupas']);
+    } else {
+      this.markFormGroupTouched();
+    }
+
+  }
+
   onSubmit(): void {
     if (this.roupaForm.valid) {
       this.isLoading = true;
@@ -108,19 +163,10 @@ export class RoupaFormComponent implements OnInit {
         this.roupaForm.value,
         this.selectedFile || undefined
       );
-
-      const operation =
-        this.isEdit && this.roupaId
-          ? this.roupaService.updateRoupa(this.roupaId, formData)
-          : this.roupaService.addRoupa(formData);
-
-      operation.subscribe({
+      this.roupaService.addRoupa(formData).subscribe({
         next: (res) => {
           this.isLoading = false;
-          const message = this.isEdit
-            ? 'Roupa atualizada com sucesso!'
-            : 'Roupa cadastrada com sucesso!';
-          alert(message);
+          alert('Roupa cadastrada com sucesso!');
           this.router.navigate(['/roupas']);
         },
         error: (error) => {

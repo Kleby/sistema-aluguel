@@ -1,0 +1,33 @@
+<button
+  class="w-100 btn card h-100 roupa-card"
+  (click)="showModal(roupaDestaque().id)"
+>
+  <div class="d-flex position-relative">
+    <div class="moker position-relative d-flex align-items-end justify-content-center">
+      <img
+        [src]="roupaDestaque().imagem_url || 'images/image-placeholder.svg'"
+        class="card-img-top card-detaque-img" style="height: 100%;"
+        [alt]="roupaDestaque().nome"
+      />
+      <span class="badge text-bg-secondary position-absolute top-50" style="font-size: .65rem;">
+        Não Disponível nesta versão
+      </span>
+    </div>
+    <span class="badge bg-primary position-absolute" style="top: 10px; left: 8px;">{{
+      roupaDestaque().status
+    }}</span>
+  </div>
+  <div class="card-body p-2">
+    <h6 class="card-title mb-1">{{ roupaDestaque().nome }}</h6>
+    <!-- <p class="card-text mb-1">
+      <small class="text-muted"
+        >{{ roupaDestaque().tamanho }} • {{ roupaDestaque().categoria }}</small
+      >
+    </p> -->
+    <p class="card-text mb-0">
+      <strong class="text-success">{{
+        roupaDestaque().preco_aluguel | currency : "BRL" : "symbol" : "1.2-2"
+      }}</strong>
+    </p>
+  </div>
+</button>

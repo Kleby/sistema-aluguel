@@ -2,15 +2,63 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { IAluguel } from '../models/ialuguel.model';
 import { HttpClient } from '@angular/common/http';
-import { IAluguelCardDTO } from '../models/ialuguel-card-dto';
+import { IRoupaOptions } from '../models/iroupas-options.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AluguelService {
   private apiUrl = 'http://localhost:3000/api/alugueis';
 
-  constructor(private http: HttpClient) { }
+  private listAluguelMock: IAluguel[] = [];
+
+  private readonly aluguelMock = {
+    id: 0,
+    cliente_id: 0,
+    roupa_id: 0,
+    usuario_id: 0,
+    data_aluguel: '',
+    data_devolucao_prevista: '',
+    data_devolucao_real: '',
+    subtotal: 0,
+    valor_total: 0,
+    situacao: '',
+    valor_taxa: 0,
+    cliente_nome: '',
+    roupa_nome: '',
+  };
+
+  constructor(private http: HttpClient) {}
+
+  getAlugueisMock(): IAluguel[] {
+    return this.listAluguelMock;
+  }
+
+  addAlugueisMock(aluguel: IAluguel) {
+    this.listAluguelMock.push(aluguel);
+  }
+
+  getAluguelById(id: number): IAluguel {
+    return this.listAluguelMock.find((al) => al.id === id) ?? this.aluguelMock;
+  }
+
+  updateAlugueisMock(id: number, aluguel:IAluguel){
+    const index = this.listAluguelMock.findIndex((al) => al.id === id)
+    if (index !== -1) {
+      alert("Não foi possível atualizar o aluguel");
+      return
+    }
+    this.listAluguelMock[index] = aluguel;
+  }
+
+  deleteAlugueisMock(id:number){
+    const index = this.listAluguelMock.findIndex((al) => al.id === id);
+    if (index !== -1){
+      alert("não foi possível deletar o aluguel");
+      return;
+    }
+    this.listAluguelMock.splice(index, 1);
+  } 
 
   getAlugueis(): Observable<IAluguel[]> {
     return this.http.get<IAluguel[]>(this.apiUrl);
@@ -20,11 +68,11 @@ export class AluguelService {
     return this.http.post(this.apiUrl, aluguel);
   }
 
-  getAluguelByClienteId(clienteId: number): Observable<IAluguel>{
+  getAluguelByClienteId(clienteId: number): Observable<IAluguel> {
     return this.http.get<IAluguel>(`${this.apiUrl}/id/${clienteId}`);
   }
 
-  getAlugueisDTOCard(): Observable<IAluguelCardDTO[]>{
-    return this.http.get<IAluguelCardDTO[]>(`${this.apiUrl}/ativos`)
+  getAlugueisDTOCard(): Observable<IAluguel[]> {
+    return this.http.get<IAluguel[]>(`${this.apiUrl}/ativos`);
   }
 }

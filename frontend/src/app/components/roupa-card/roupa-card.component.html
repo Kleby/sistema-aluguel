@@ -1,52 +1,76 @@
-  <div class="card h-100 roupa-card">
-    <img
+<div class="card h-100 roupa-card">
+  <div class="d-flex position-relative">
+    <div class="mocker position-relative d-flex align-items-center justify-content-center">
+      <img
       [src]="roupa().imagem_url || 'images/image-placeholder.svg'"
-      class="card-img-top"
+      class="card__image card-img-top"
       [alt]="roupa().nome"
-      style="height: 250px; object-fit: cover"
-    />
+      />
+      <span class=" badge text-bg-secondary position-absolute" style="rotate: 45deg;">
+        Não Disponível nesta versão
+      </span>
+    </div>
+    <span
+      [class]="'badge position-absolute ' + situacaoStyle[roupa().status]"
+      style="top: 1rem; left: 0.75rem"
+    >
+      {{ roupa().status }}
+    </span>
+    <span class="badge bg-secondary position-absolute fs-6 fw-bold" style="bottom: 0.25rem; right: 1rem;">{{ roupa().tamanho }}</span>
+  </div>
 
-    <div class="card-body d-flex flex-column">
-      <div class="d-flex justify-content-between align-items-start mb-2">
-        <h5 class="card-title mb-0">{{ roupa().nome }}</h5>
-        <span [class]="'badge ' + getStatusBadgeClass(roupa().status)">
-          {{ getStatusText(roupa().status) }}
-        </span>
+  <div class="card-body d-flex flex-column mt-2">
+    <div class="d-flex justify-content-between align-items-start mb-2">
+      <h5 class="card-title mb-0">{{ roupa().nome }}</h5>
+    </div>
+
+    <p class="card-text text-muted small flex-grow-1 mb-0">
+      {{ roupa().descricao }}
+    </p>
+
+    <div class="mt-auto">
+      <div class="d-flex justify-content-between align-items-center mb-0">
+        <span class="badge bg-primary-subtle fs-6 fw-bold text-black-50">
+          <i class="fa-solid fa-layer-group"></i>
+          {{
+          roupa().categoria
+        }}</span>
+        <div class=" d-flex justify-content-between text-primary-emphasis align-items-center mx-2">
+            <i class="fa-solid fa-0 fa-shirt mx-1"> </i>
+          <span>
+            {{roupa().quantidade}}
+          </span>
+        </div>
       </div>
 
-      <p class="card-text text-muted small flex-grow-1">
-        {{ roupa().descricao }}
-      </p>
+      <div
+        class="d-flex justify-content-between align-items-center flex-column"
+      >
+        <strong class="text-success h5 my-2">
+          {{roupa().preco_aluguel |currency:'BRL':'symbol' :'1.2-2'}}
+        </strong>
 
-      <div class="mt-auto">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="badge bg-light text-dark">{{ roupa().categoria }}</span>
-          <span class="badge bg-secondary">{{ roupa().tamanho }}</span>
-        </div>
+        <div class="btn-group btn-group-sm gap-1 w-100">
+          <a
+            class="btn btn-outline-primary w-100"
+            [routerLink]="['/roupas/editar', roupa().id]"
+            title="Editar"
+          >
 
-        <div class="d-flex justify-content-between align-items-center">
-          <strong class="text-success h5 mb-0">
-            {{ formatCurrency(roupa().preco_aluguel) }}
-          </strong>
-
-          <div class="btn-group btn-group-sm gap-1">
-            <a
-              class="btn btn-outline-primary"
-              [routerLink]="['/roupas/editar', roupa().id]"
-              title="Editar"
-            >
-              <i class="fas fa-edit"></i>
-            </a>
-            <button
-              class="btn btn-outline-success"
-              [disabled]="roupa().status !== 'disponivel'"
-              title="Alugar"
-              (click)="navigateToAluguel(roupa())"
-            >
-              <i class="fas fa-shopping-bag"></i>
-            </button>
-          </div>
+            <span class="title-btn__card">Editar</span>
+            <i class="fas fa-edit"></i>
+          </a>
+          <button
+            class="btn btn-outline-success w-100"
+            [disabled]="roupa().status !== 'disponivel'"
+            title="Alugar"
+            (click)="navigateToAluguel(roupa())"
+          >
+            <span class="title-btn__card">Alugar</span>
+            <i class="fas fa-shopping-bag"></i>
+          </button>
         </div>
       </div>
     </div>
   </div>
+</div>

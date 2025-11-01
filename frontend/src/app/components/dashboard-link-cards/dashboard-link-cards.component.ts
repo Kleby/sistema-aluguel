@@ -12,12 +12,12 @@ export class DashboardLinkCardsComponent {
 
   pageLink: InputSignal<string> = input.required<string>();
   cardTitle: InputSignal<string> = input.required<string>();
-  totalStats: InputSignal<number> = input.required<number>();
-  availableStats: InputSignal<string> = input<string>('');
+  totalStats: InputSignal<number | string> = input<number| string>('');
+  availableStats: InputSignal<number | string> = input<number | string>('');
   unavailableStats: InputSignal<string> = input<string>('');
   
   // Temas
-  faIcon: InputSignal<string> = input.required<string>();
+  faIcon: InputSignal<string> = input<string>('');
   iconBg: InputSignal<string> = input<string>('');
   textColor: InputSignal<string> = input<string>('');
   unavailabeColor: InputSignal<string> = input<string>('');

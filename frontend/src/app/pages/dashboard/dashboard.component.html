@@ -54,12 +54,12 @@
   <div class="row g-4 mb-4">
     <!-- Total de Roupas -->
     <app-dashboard-link-cards
-    class="col-xl-3 col-md-6"
+      class="col-xl-3 col-md-6"
       pageLink="/roupas"
       cardTitle="Total de Roupas"
-      [totalStats]="stats.totalRoupas"
-      [availableStats]="stats.roupasDisponiveis + ' disponíveis'"
-      [unavailableStats]="stats.roupasAlugadas + ' alugadas'"
+      [totalStats]="statsMock.totalRoupas"
+      [availableStats]="statsMock.roupasDisponiveis + ' disponíveis'"
+      [unavailableStats]="statsMock.roupasAlugadas + ' alugadas'"
       faIcon="fa-tshirt"
       iconBg="primary"
       textColor="text-primary"
@@ -67,12 +67,14 @@
     />
     <!-- Aluguéis Ativos -->
     <app-dashboard-link-cards
-    class="col-xl-3 col-md-6"
+      class="col-xl-3 col-md-6"
       pageLink="/alugueis"
-      cardTitle="Aluguéis Ativos"
-      [totalStats]="stats.alugueisAtivos"
-      [availableStats]="stats.totalAlugueis + ' no total'"
-      [unavailableStats]="stats.alugueisAtrasados + ' atrasados'"
+      cardTitle="Aluguéis"
+      [totalStats]="statsMock.totalAlugueis"
+      [availableStats]="
+        statsMock.totalAlugueis - statsMock.alugueisAtrasados + ' em dias'
+      "
+      [unavailableStats]="statsMock.alugueisAtrasados + ' em atrasos'"
       faIcon="fa-shopping-bag"
       iconBg="success"
       textColor="text-success"
@@ -80,22 +82,22 @@
     />
     <!-- Roupas Disponíveis -->
     <app-dashboard-link-cards
-    class="col-xl-3 col-md-6"
+      class="col-xl-3 col-md-6"
       pageLink="/disponiveis"
       cardTitle="Disponíveis"
-      [totalStats]="stats.roupasDisponiveis"
-      [availableStats]="stats.roupasManutencao + ' em manutenção'"
+      [totalStats]="statsMock.roupasDisponiveis"
+      [availableStats]="statsMock.roupasManutencao + ' em manutenção'"
       faIcon="fa-check-circle"
       iconBg="info"
       textColor="text-danger"
     />
-     <!-- Total de Clientes -->
+    <!-- Total de Clientes -->
     @if(user?.tipo === 'admin'){
     <app-dashboard-link-cards
-    class="col-xl-3 col-md-6"
+      class="col-xl-3 col-md-6"
       pageLink="/clientes"
       cardTitle="Total de Clientes"
-      [totalStats]="stats.totalClientes"
+      [totalStats]="statsMock.totalClientes"
       availableStats="Clientes cadastrados"
       faIcon="fa-users"
       iconBg="secondary"
@@ -194,29 +196,31 @@
                 @for(aluguel of recentAlugueis; track $index){
                 <tr class="align-middle">
                   <td>
-                    <strong>{{ aluguel.cliente_nome }}</strong>
+                    <strong>{{ aluguel.cliente }}</strong>
                   </td>
-                  <td>{{ aluguel.roupa_nome }}</td>
-                  <td>{{ aluguel.data_aluguel | formatDate }}</td>
+                  <td>{{ aluguel.roupa }}</td>
+                  <td>{{ aluguel.data_aluguel | date : "dd/MM/yyyy" }}</td>
                   <td>
                     <span
                       [class.text-danger]="
                         isDateOverdue(aluguel.data_devolucao_prevista) &&
-                        aluguel.status === 'ativo'
+                        aluguel.situacao === 'ativo'
                       "
                     >
-                      {{ aluguel.data_devolucao_prevista | formatDate }}
+                      {{
+                        aluguel.data_devolucao_prevista | date : "dd/MM/yyyy"
+                      }}
                     </span>
                   </td>
                   <td>
-                    <strong>{{ formatCurrency(aluguel.valor_total) }}</strong>
+                    <strong>{{ aluguel.valor_total | currency:'BRL':'symbol':'1.2-2' }}</strong>
                   </td>
                   <td>
                     <span
                       class="badge"
-                      [class]="'badge ' + getStatusBadgeClass(aluguel.situacao)"
+                      [class]="'badge ' + situacaoStyles[aluguel.situacao]"
                     >
-                      {{ getStatusText(aluguel.situacao) }}
+                      {{ aluguel.situacao }}
                     </span>
                   </td>
                 </tr>
@@ -247,29 +251,10 @@
         <div class="card-body">
           <div class="row g-3">
             @for (roupa of roupasPopulares; track $index) {
-            <div class="col-6">
-              <div class="card h-100 roupa-card">
-                <img
-                  [src]="roupa.imagem_url || 'assets/placeholder-roupa.jpg'"
-                  class="card-img-top"
-                  [alt]="roupa.nome"
-                  style="height: 120px; object-fit: cover"
-                />
-                <div class="card-body p-2">
-                  <h6 class="card-title mb-1">{{ roupa.nome }}</h6>
-                  <p class="card-text mb-1">
-                    <small class="text-muted"
-                      >{{ roupa.categoria }} • {{ roupa.tamanho }}</small
-                    >
-                  </p>
-                  <p class="card-text mb-0">
-                    <strong class="text-success">{{
-                      formatCurrency(roupa.preco_aluguel)
-                    }}</strong>
-                  </p>
-                </div>
-              </div>
-            </div>
+            <app-cards-destaque
+              [roupaDestaque]="roupa"
+              class="col-6"
+            />
             }
           </div>
           @if(roupasPopulares.length === 0){

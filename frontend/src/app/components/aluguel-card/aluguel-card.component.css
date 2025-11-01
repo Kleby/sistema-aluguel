@@ -16,3 +16,13 @@
 .text-left{
     text-align: left;
 }
+
+/* .highlight-card{
+  visibility: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: scale(2);
+  width: 100dvw;
+  height: 100dvh;
+} */

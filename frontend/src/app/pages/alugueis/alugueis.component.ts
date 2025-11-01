@@ -1,18 +1,19 @@
 import { Component, OnInit } from '@angular/core';
-import { IAluguelCardDTO } from '../../models/ialuguel-card-dto';
 import { AluguelService } from '../../services/aluguel.service';
 import { FormsModule } from '@angular/forms';
 import { AluguelCardComponent } from "../../components/aluguel-card/aluguel-card.component";
+import { RouterLink } from "@angular/router";
+import { IAluguel } from '../../models/ialuguel.model';
 
 @Component({
   selector: 'app-alugueis',
-  imports: [FormsModule, AluguelCardComponent],
+  imports: [FormsModule, AluguelCardComponent, RouterLink],
   templateUrl: './alugueis.component.html',
   styleUrl: './alugueis.component.css',
 })
 export class AlugueisComponent implements OnInit {
-  alugueis: IAluguelCardDTO[] = [];
-  alugueisFiltrados: IAluguelCardDTO[] = [];
+  alugueis: IAluguel[] = [];
+  alugueisFiltrados: IAluguel[] = [];
   isLoading: boolean = false;
   procurarTermo = '';
   categoriaSelecionada = '';
@@ -20,12 +21,22 @@ export class AlugueisComponent implements OnInit {
   constructor(private aluguelSevice: AluguelService) {}
 
   ngOnInit(): void {
-    this.loadAlugueis();
+    // this.loadAlugueis();
+    this.loadAlugueisMock();
+  }
+
+  loadAlugueisMock(){
+    this.isLoading = true;
+    this.alugueis = this.aluguelSevice.getAlugueisMock();
+    this.alugueisFiltrados = this.aluguelSevice.getAlugueisMock();
+    setTimeout(()=>{
+      this.isLoading = false;
+    }, 500)
   }
 
   loadAlugueis(): void {
     this.isLoading = true;
-    this.aluguelSevice.getAlugueisDTOCard().subscribe({
+    this.aluguelSevice.getAlugueis().subscribe({
       next: (data) => {        
         this.alugueis = data;
         this.alugueisFiltrados = data;
@@ -40,13 +51,8 @@ export class AlugueisComponent implements OnInit {
 
   filterAluguel(): void {
     this.alugueisFiltrados = this.alugueis.filter((aluguel) => {
-      const matchesSearch =
-        aluguel.roupa_nome
-          .toLowerCase()
-          .includes(this.procurarTermo.toLowerCase()) ||
-        aluguel.cliente_nome
-          .toLowerCase()
-          .includes(this.procurarTermo.toLowerCase());
+      const matchesSearch = aluguel.roupa!.toLowerCase().includes(this.procurarTermo.toLowerCase()) 
+                          ||aluguel.cliente!.toLowerCase().includes(this.procurarTermo.toLowerCase());
       return matchesSearch;
     });
   }

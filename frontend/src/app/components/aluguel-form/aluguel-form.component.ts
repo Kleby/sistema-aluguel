@@ -1,17 +1,25 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { ICliente } from '../../models/icliente.model';
 import { IRoupa } from '../../models/iroupa.model';
 import { AluguelService } from '../../services/aluguel.service';
 import { RoupaService } from '../../services/roupa.service';
 import { ClienteService } from '../../services/cliente.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { RoupaOptionsService } from '../../services/roupa-options.service';
+import { IRoupaOptions } from '../../models/iroupas-options.model';
+import { CurrencyPipe } from '@angular/common';
 
 @Component({
   selector: 'app-aluguel-form',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CurrencyPipe],
   templateUrl: './aluguel-form.component.html',
-  styleUrl: './aluguel-form.component.css'
+  styleUrl: './aluguel-form.component.css',
 })
 export class AluguelFormComponent implements OnInit {
   aluguelForm: FormGroup;
@@ -19,38 +27,55 @@ export class AluguelFormComponent implements OnInit {
   clientes: ICliente[] = [];
   roupasDisponiveis: IRoupa[] = [];
   roupaSelecionada: IRoupa | null = null;
+  
+  abrirModalReceber: boolean = false;
+
+  categorias: IRoupaOptions[] = [];
+  tamanhos: IRoupaOptions[] = [];
 
   constructor(
     private fb: FormBuilder,
     private aluguelService: AluguelService,
     private roupaService: RoupaService,
     private clienteService: ClienteService,
+    private roupaOptionsService: RoupaOptionsService,
     private route: ActivatedRoute,
     private router: Router
   ) {
     this.aluguelForm = this.fb.group({
       cliente_id: ['', Validators.required],
       roupa_id: ['', Validators.required],
-      data_aluguel: [new Date().toISOString().split('T')[0], Validators.required],
+      data_aluguel: [
+        new Date().toISOString().split('T')[0],
+        Validators.required,
+      ],
       data_devolucao_prevista: ['', Validators.required],
       valor_total: [0, [Validators.required, Validators.min(0)]],
-      valor_taxa: ["", Validators.required],
+      valor_taxa: ['', Validators.required],
     });
   }
 
   ngOnInit(): void {
-    this.loadClientes();
-    this.loadRoupasDisponiveis();
-    
+    // this.loadClientes();
+    // this.loadRoupasDisponiveis();
+    this.loadClientesMock();
+    this.loadRoupasDisponivelMock();    
     // Verificar se há uma roupa pré-selecionada via query params
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe((params) => {
       if (params['roupa_id']) {
         this.aluguelForm.patchValue({
-          roupa_id: params['roupa_id']
+          roupa_id: params['roupa_id'],
         });
         this.onRoupaSelecionada();
       }
     });
+  }
+
+  loadClientesMock() {
+    this.clientes = this.clienteService.getClientesMock();
+  }
+  loadRoupasDisponivelMock() {
+    this.roupasDisponiveis = this.roupaService.getRoupasMock();
   }
 
   loadClientes(): void {
@@ -61,37 +86,39 @@ export class AluguelFormComponent implements OnInit {
       error: (error) => {
         console.error('Erro ao carregar clientes:', error);
         alert('Erro ao carregar lista de clientes');
-      }
+      },
     });
   }
 
   loadRoupasDisponiveis(): void {
     this.roupaService.getRoupas().subscribe({
       next: (roupas) => {
-        this.roupasDisponiveis = roupas.filter(r => r.status === 'disponivel');
+        this.roupasDisponiveis = roupas.filter(
+          (r) => r.status === 'disponivel'
+        );
       },
       error: (error) => {
         console.error('Erro ao carregar roupas:', error);
         alert('Erro ao carregar lista de roupas');
-      }
+      },
     });
   }
 
   onRoupaSelecionada(): void {
     const roupaId = this.aluguelForm.get('roupa_id')?.value;
-    const roupa = this.roupasDisponiveis.find(r => r.id == roupaId);
-    
+    const roupa = this.roupasDisponiveis.find((r) => r.id == roupaId);
+
     if (roupa) {
       this.roupaSelecionada = roupa;
-      
+
       // Calcular data de devolução (7 dias a partir de hoje)
       const dataAluguel = new Date(this.aluguelForm.get('data_aluguel')?.value);
       const dataDevolucao = new Date(dataAluguel);
       dataDevolucao.setDate(dataDevolucao.getDate() + 7);
-      
+
       this.aluguelForm.patchValue({
         data_devolucao_prevista: dataDevolucao.toISOString().split('T')[0],
-        valor_total: roupa.preco_aluguel
+        valor_total: roupa.preco_aluguel,
       });
     } else {
       this.roupaSelecionada = null;
@@ -103,10 +130,25 @@ export class AluguelFormComponent implements OnInit {
       const dataAluguel = new Date(this.aluguelForm.get('data_aluguel')?.value);
       const dataDevolucao = new Date(dataAluguel);
       dataDevolucao.setDate(dataDevolucao.getDate() + 7);
-      
+
       this.aluguelForm.patchValue({
-        data_devolucao_prevista: dataDevolucao.toISOString().split('T')[0]
+        data_devolucao_prevista: dataDevolucao.toISOString().split('T')[0],
       });
+    }
+  }
+
+  onSubmitMock(){
+    if (this.aluguelForm.valid) {
+      this.isLoading = true;
+      this.aluguelService.addAlugueisMock(this.aluguelForm.value);
+      setTimeout(() => {
+        this.isLoading = false;
+        alert('Aluguel realizado com sucesso!');
+        this.router.navigate(['/dashboard']);
+      },500)
+
+    } else {
+      this.markFormGroupTouched();
     }
   }
 
@@ -124,21 +166,20 @@ export class AluguelFormComponent implements OnInit {
           this.isLoading = false;
           console.error('Erro ao criar aluguel:', error);
           alert(error.error?.error || 'Erro ao realizar aluguel');
-        }
+        },
       });
     } else {
       this.markFormGroupTouched();
     }
   }
 
-  teste(){
-    const {valor_taxa} = this.aluguelForm.value;
+  teste() {
+    const { valor_taxa } = this.aluguelForm.value;
     console.log(valor_taxa);
-    
   }
 
   private markFormGroupTouched(): void {
-    Object.keys(this.aluguelForm.controls).forEach(key => {
+    Object.keys(this.aluguelForm.controls).forEach((key) => {
       this.aluguelForm.get(key)?.markAsTouched();
     });
   }
@@ -150,7 +191,7 @@ export class AluguelFormComponent implements OnInit {
   formatCurrency(value: number): string {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL'
+      currency: 'BRL',
     }).format(value);
   }
 }

@@ -9,7 +9,9 @@ import { ClientesListComponent } from './components/clientes-list/clientes-list.
 import { AluguelFormComponent } from './components/aluguel-form/aluguel-form.component';
 import { RoupaListComponent } from './components/roupa-list/roupa-list.component';
 import { AlugueisComponent } from './pages/alugueis/alugueis.component';
-import { ClienteRoupaMoodalComponent } from './components/cliente-roupa.moodal/cliente-roupa.moodal.component';
+import { ClienteRoupaModalComponent } from './components/cliente-roupa.modal/cliente-roupa.modal.component';
+import { MensagensComponent } from './pages/mensagens/mensagens.component';
+import { AtualizaRoupaComponent } from './pages/atualiza-roupa/atualiza-roupa.component';
 
 export const routes: Routes = [
   {
@@ -49,7 +51,7 @@ export const routes: Routes = [
   },
   {
     path: 'roupas/editar/:id',
-    component: RoupaFormComponent,
+    component: AtualizaRoupaComponent,
     canActivate: [authGuard],
   },
 
@@ -78,11 +80,15 @@ export const routes: Routes = [
     path:"alugueis", component: AlugueisComponent, title: "Alugueis Ativos",  canActivate: [authGuard]
   },
   {
-    path:"alugueis/id/:id", component: ClienteRoupaMoodalComponent, title: "Alugueis Ativos",  canActivate: [authGuard]
+    path:"alugueis/id/:id", component: ClienteRoupaModalComponent, title: "Alugueis Ativos",  canActivate: [authGuard]
   },
 
   {
     path:"alugueis/novo", component: AluguelFormComponent, canActivate: [authGuard]
+  },
+
+  {
+    path:"bot-mensagens", component: MensagensComponent, canActivate: [authGuard]
   },
 
   { path: '**', redirectTo: '/dashboard' },

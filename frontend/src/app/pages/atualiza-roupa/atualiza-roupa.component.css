@@ -1,0 +1,46 @@
+.upload-area {
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #f8f9fa;
+  width: 100%;
+}
+
+.upload-area:hover {
+  border-color: #007bff;
+  background-color: #e7f3ff;
+}
+
+.upload-content {
+  color: #6c757d;
+}
+
+.img-preview {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #495057;
+}
+
+.card {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

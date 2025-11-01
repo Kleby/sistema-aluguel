@@ -5,20 +5,36 @@ import { RoupaService } from '../../services/roupa.service';
 import { Router } from '@angular/router';
 import { AluguelService } from '../../services/aluguel.service';
 import { ClienteService } from '../../services/cliente.service';
-import { DashboardLinkCardsComponent } from "../../components/dashboard-link-cards/dashboard-link-cards.component";
-import { FormatDatePipe } from '../../pipes/format-date.pipe';
+import { DashboardLinkCardsComponent } from '../../components/dashboard-link-cards/dashboard-link-cards.component';
+import { DatePipe, CurrencyPipe } from '@angular/common';
+import { CardsDestaqueComponent } from '../../components/cards-destaque/cards-destaque.component';
+import { IRoupa } from '../../models/iroupa.model';
+import { SITUACAO_STYLES_BADGE } from '../../utils/design.constants';
+import { IAluguel } from '../../models/ialuguel.model';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DashboardLinkCardsComponent, FormatDatePipe],
+  imports: [
+    DashboardLinkCardsComponent,
+    DatePipe,
+    CardsDestaqueComponent,
+    CurrencyPipe,
+  ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent {
-  user: IUser | null = null;
+  user: IUser | null = {
+      id: 1,
+      nome: 'Admin',
+      email: 'admin@loja.com',
+      tipo: 'admin',
+      status: 'ativo',
+      data_expiracao: '2032-09-09 20:00:00',
+    };
   isLoading = true;
-  dashboardCards: string[] = ['ROUPAS', 'ALUGADAS', 'DISPONIVEIS', 'CLIENTES']
+  situacaoStyles = SITUACAO_STYLES_BADGE;
 
   stats = {
     totalRoupas: 0,
@@ -29,9 +45,20 @@ export class DashboardComponent {
     alugueisAtivos: 0,
     alugueisAtrasados: 0,
     totalClientes: 0,
-  };  
-  recentAlugueis: any[] = [];
-  roupasPopulares: any[] = [];
+  };
+  statsMock = {
+    totalRoupas: 0,
+    roupasDisponiveis: 0,
+    roupasAlugadas: 0,
+    roupasManutencao: 0,
+    totalAlugueis: 0,
+    alugueisAtivos: 0,
+    alugueisAtrasados: 0,
+    totalClientes: 0,
+  };
+
+  recentAlugueis: IAluguel[] = [];
+  roupasPopulares: IRoupa[] = [];
 
   constructor(
     private authService: AuthService,
@@ -42,9 +69,9 @@ export class DashboardComponent {
   ) {}
 
   ngOnInit(): void {
-    this.getCurrentUser();
-    this.loadDashboardData();
-
+    // this.getCurrentUser();
+    // this.loadDashboardData();
+    this.loadDashboardDataMock();    
   }
   getCurrentUser(): void {
     this.authService.currentUser$.subscribe(
@@ -52,9 +79,72 @@ export class DashboardComponent {
     );
   }
 
+  loadDashboardDataMock(): void {
+    this.isLoading = true;
+    this.loadRoupasStatsMock(),
+      this.loadAlugueisStatsMock(),
+      this.loadClientesStatsMock(),
+      this.loadRecentAlugueisMock(),
+      this.loadRoupasPopularesMock(),
+      setTimeout(() => {
+        this.isLoading = false;
+      }, 500);
+  }
+
+  // Carregar dados mockado
+  loadRoupasStatsMock(): void {
+    const roupas = this.roupaService.getRoupasMock();
+    this.statsMock.totalRoupas = roupas.length;
+    this.statsMock.roupasDisponiveis = roupas.filter(
+      (r) => r.status === 'disponivel'
+    ).length;
+    this.statsMock.roupasAlugadas = roupas.filter(
+      (r) => r.status === 'alugado'
+    ).length;
+    this.statsMock.roupasManutencao = roupas.filter(
+      (r) => r.status === 'manutencao'
+    ).length;
+  }
+  loadAlugueisStatsMock(): void {
+    const alugueis = this.aluguelService.getAlugueisMock();
+    this.statsMock.totalAlugueis = alugueis.length;
+    this.statsMock.alugueisAtivos = alugueis.filter(
+      (al) => al.situacao === 'ativo'
+    ).length;
+    const hoje = new Date();
+    this.statsMock.alugueisAtrasados = alugueis.filter((al) => {
+      if (al.situacao === 'atrasado') {
+        const dataDevolucao = new Date(al.data_devolucao_prevista);
+        return dataDevolucao < hoje;
+      }
+      return false;
+    }).length;
+  }
+  loadClientesStatsMock() {
+    const clientes = this.clienteService.getClientesMock();
+    this.statsMock.totalClientes = clientes.length;
+  }
+  loadRecentAlugueisMock(): void {
+    this.recentAlugueis = this.aluguelService
+      .getAlugueisMock()
+      .sort(
+        (a, b) =>
+          new Date(b.data_aluguel).getTime() -
+          new Date(a.data_aluguel).getTime()
+      )
+      .slice(0, 5);
+  }
+  loadRoupasPopularesMock(): void {
+    this.roupasPopulares = this.roupaService
+      .getRoupasMock()
+      .filter((r) => r.status === 'disponivel')
+      .sort((a, b) => b.preco_aluguel - a.preco_aluguel)
+      .slice(0, 4);
+  }
+
+  // Fim dos mockes
   loadDashboardData(): void {
     this.isLoading = true;
-
     // Carregar dados em paralelo
     Promise.all([
       this.loadRoupasStats(),
@@ -65,8 +155,9 @@ export class DashboardComponent {
     ]).finally(() => {
       this.isLoading = false;
     });
-
   }
+
+  // Carregar dados dinamicos
   loadRoupasStats(): Promise<void> {
     return new Promise((resolve) => {
       this.roupaService.getRoupas().subscribe({
@@ -81,7 +172,8 @@ export class DashboardComponent {
           this.stats.roupasManutencao = roupas.filter(
             (r) => r.status === 'manutencao'
           ).length;
-          resolve();
+
+          return resolve();
         },
         error: (error) => {
           console.error('Erro ao carregar estatísticas de roupas:', error);
@@ -96,13 +188,13 @@ export class DashboardComponent {
         next: (alugueis) => {
           this.stats.totalAlugueis = alugueis.length;
           this.stats.alugueisAtivos = alugueis.filter(
-            (a) => a.situacao === 'em dias'
+            (a) => a.situacao === 'ativo'
           ).length;
 
           // Calcular aluguéis atrasados
           const hoje = new Date();
           this.stats.alugueisAtrasados = alugueis.filter((a) => {
-            if (a.situacao === 'em dias') {
+            if (a.situacao === 'atrasado') {
               const dataDevolucao = new Date(a.data_devolucao_prevista);
               return dataDevolucao < hoje;
             }
@@ -160,7 +252,7 @@ export class DashboardComponent {
   loadRoupasPopulares(): Promise<void> {
     return new Promise((resolve) => {
       this.roupaService.getRoupas().subscribe({
-        next: (roupas) => {
+        next: (roupas: IRoupa[]) => {
           // Ordenar por preço (mais caras primeiro) e pegar as 4 primeiras
           this.roupasPopulares = roupas
             .filter((r) => r.status === 'disponivel')
@@ -175,9 +267,9 @@ export class DashboardComponent {
       });
     });
   }
-  getDaysUntilExpiration(): number {
-    if (!this.user?.data_expiracao) return 0;
 
+  getDaysUntilExpiration(): number {   
+    if (!this.user?.data_expiracao) return 0;
     const expiration = new Date(this.user.data_expiracao);
     const today = new Date();
     const diffTime = expiration.getTime() - today.getTime();
@@ -195,39 +287,6 @@ export class DashboardComponent {
 
   navigateTo(route: string): void {
     this.router.navigate([route]);
-  }
-
-  formatCurrency(value: number): string {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  }
-
-  getStatusBadgeClass(situacao: string): string {
-    switch (situacao) {
-      case 'em dias':
-        return 'bg-success';
-      case 'devolvido':
-        return 'bg-secondary';
-      case 'atrasado':
-        return 'bg-danger';
-      default:
-        return 'bg-warning';
-    }
-  }
-
-  getStatusText(situacao: string): string {
-    switch (situacao) {
-      case 'ativo':
-        return 'Ativo';
-      case 'devolvido':
-        return 'Devolvido';
-      case 'atrasado':
-        return 'Atrasado';
-      default:
-        return situacao;
-    }
   }
 
   isDateOverdue(dateString: string): boolean {

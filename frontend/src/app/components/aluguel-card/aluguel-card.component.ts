@@ -1,61 +1,25 @@
 import { Component, input, InputSignal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ISituacao } from '../../models/isituacao';
-import { IAluguelCardDTO } from '../../models/ialuguel-card-dto';
-import { FormatDatePipe } from '../../pipes/format-date.pipe';
+import { DatePipe } from '@angular/common';
+import { SITUACAO_STYLES_BADGE } from '../../utils/design.constants';
+import { ClienteRoupaModalComponent } from '../cliente-roupa.modal/cliente-roupa.modal.component';
+import { IAluguel } from '../../models/ialuguel.model';
 
 @Component({
   selector: 'app-aluguel-card',
-  imports: [RouterLink, FormatDatePipe],
+  imports: [RouterLink, DatePipe, ClienteRoupaModalComponent],
   templateUrl: './aluguel-card.component.html',
   styleUrl: './aluguel-card.component.css',
 })
-export class AluguelCardComponent implements OnInit {
+export class AluguelCardComponent {
+  aluguel: InputSignal<IAluguel> = input.required<IAluguel>();
+  situacaoStyleBg = SITUACAO_STYLES_BADGE;
 
-  aluguel: InputSignal<IAluguelCardDTO> = input.required<IAluguelCardDTO>();
+  isOpenModal = false;
 
-  ngOnInit(): void {
-    console.log(this.aluguel());
-    
-  }
+  sendMensagem() {}
 
-  // modalEnabled
-  getStatusBadgeClass(situacao: string): string {
-    
-    // return this.situacao[situacao] ?? ""
-    switch (situacao) {
-      case 'devolvido':
-        return 'bg-success';
-      case 'atrasado':
-        return 'bg-danger';
-      default:
-        return 'bg-primary';
-    }
-  }
-
-  getStatusText(situacao: string): string {
-    switch (situacao) {
-      case 'em dias':
-        return 'em dias';
-      case 'devolvida':
-        return 'devolvida';
-      case 'atrasada':
-        return 'atrasada';
-      default:
-        return situacao;
-    }    
-  }
-
-    formatCurrency(diasAtraos: number): string {
-
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(diasAtraos * this.aluguel().valor_taxa);
-  }
-  sendMensagem(){}
-
-  showModal(id: number){
-    alert("id: "+ id);
+  handleShowModal(value: boolean) {
+    this.isOpenModal = value;
   }
 }

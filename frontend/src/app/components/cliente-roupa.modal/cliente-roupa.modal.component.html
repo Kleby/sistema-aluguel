@@ -1,0 +1,45 @@
+<div class="blur-page"></div>
+<dialog class="card card-modal p-2">
+  <button
+    class="btn btn-close"
+    (click)="closeModal()"
+    title="button fechar modal"
+  ></button>
+  <div class="card-bodyd-flex flex-column bg-light">
+    <div class="card-header">
+      <img
+        [src]="roupaModal().roupa_imagem"
+        [alt]="roupaModal().roupa"
+        class="card-img-top card__image"
+      />
+      <h5 class="card-title mt-3">{{ roupaModal().roupa }}</h5>
+      <h5
+        class="card-subtitle card-text text-muted medium flex-grow-1 text-left"
+      >
+        {{ roupaModal().cliente }}
+      </h5>
+    </div>
+    <div class="card-body">
+      <div
+        class="card-body__tax d-flex justify-content-between align-items-center"
+      >
+        <p>Atrasos: <span class="text-danger">{{ roupaModal().dias_atrasos }}</span></p>
+        <p>Taxa diaria: <span> {{ roupaModal().valor_taxa }}</span></p>
+      </div>
+      <div class="card-body__pay d-flex justify-content-between align-items-center">
+        <p>
+          Subtotal:
+          {{ roupaModal().subtotal | currency:"BRL":"symbol":"1.2-2" }}
+        </p>
+        <p>
+          Total:
+          {{ roupaModal().valor_total | currency:'BRL':'symbol':'1.2-2' }}
+        </p>
+      </div>
+    </div>
+    <div class="card-footer btn-group-sm">
+      <button class="btn btn-outline-success">pago</button>
+      <button class="btn btn-outline-warning">cancelado</button>
+    </div>
+  </div>
+</dialog>
