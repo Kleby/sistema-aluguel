@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User.js");
+const logger = require("../config/logger.js");
+
 const {
   generateToken,
   authMiddleware,
@@ -65,7 +67,7 @@ router.post("/login", async (req, res) => {
       user: userData,
     });
   } catch (error) {
-    console.error("Erro no login:", error);
+    logger.error("Erro no login:", error);
     res.status(500).json({
       error: "Erro interno do servidor.",
     });
@@ -97,7 +99,7 @@ router.post("/verify", authMiddleware, async (req, res) => {
       user: userData,
     });
   } catch (error) {
-    console.error("Erro ao verificar token:", error);
+    logger.error("Erro ao verificar token:", error);
     res.status(500).json({
       error: "Erro interno do servidor.",
     });

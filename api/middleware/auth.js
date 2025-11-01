@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const logger = require("../config/logger.js");
 
 const JWT_SECRET = process.env.JWT_SECRET || 'seu_segredo_super_secreto';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
@@ -51,7 +52,7 @@ async function authMiddleware(req, res, next) {
     req.user = user;
     next();
   } catch (error) {
-    console.error('Erro na autenticação:', error);
+    logger.error('Erro na autenticação:', error);
     res.status(401).json({ 
       error: 'Token inválido ou expirado.' 
     });

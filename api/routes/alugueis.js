@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Aluguel = require("../models/repository/Aluguel.repository.js");
 const { authMiddleware } = require("../middleware/auth");
+const logger = require("../config/logger.js");
 
 // Aplicar autenticação em todas as rotas
 router.use(authMiddleware);
@@ -13,9 +14,9 @@ router.get("/", async (req, res) => {
     const alugueis = await Aluguel.obterTodos(orderBy);
     return res.status(200).json(alugueis);
   } catch (err) {
-    console.log("error no todos:");
+    logger.error("error no todos os alugueis:");
     
-    console.error("sttaus code: "+err);
+    logger.error("sttaus code: "+err);
     res.status(400).json({
       message: err.message,
       error: "Não foi possivel listar todos os alugueis",
@@ -30,9 +31,9 @@ router.get("/ativos", async (req, res) => {
     const alugueis = await Aluguel.obterTodosDTO(orderBy);
     return res.status(200).json(alugueis);
   } catch (err) {
-    console.log("error no todos:");
+    logger.error("error no todos os alugueis ativos:");
     
-    console.error("sttaus code: "+err);
+    logger.error("sttaus code: "+err);
     res.status(400).json({
       message: err.message,
       error: "Não foi possivel listar todos os alugueis",
@@ -46,7 +47,7 @@ router.get("id/:id", async (req, res) => {
     const aluguel = await Aluguel.obterPorId(req.params.id);
     return res.status(200).json(aluguel);
   } catch (err) {
-    console.error(err.message);
+    logger.error(err.message);
     return res.status(err.statusCode).json(err.message);
   }
 });
@@ -58,7 +59,7 @@ router.get("cliente/:nome", async (req, res) => {
 
     return res.status(200).json(aluguel);
   } catch (err) {
-    console.error(err.message);
+    logger.error(err.message);
     return res.status(400).json(err);
   }
 });
@@ -68,7 +69,7 @@ router.get("cliente/id/:cliente_id", async (req, res) => {
     const aluguel = await Aluguel.obterPorIdCliente(req.params.cliente_id);
     return res.status(200).json(aluguel);
   } catch (err) {
-    console.error(err.message);
+    logger.error(err.message);
     return res.status(400).json(err);
   }
 });
@@ -97,7 +98,7 @@ router.post("/", async (req, res) => {
 
     return res.status(201).json(aluguel);
   } catch (err) {
-    console.error(err.message);
+    logger.error(err.message);
     res.status(400).json({
       message: err.message,
       error: "Error ao criar aluguel: " + err,
@@ -129,7 +130,7 @@ router.put("/:id", async (req, res) => {
 
     return res.status(200).json(aluguel);
   } catch (err) {
-    console.error(err.message);
+    logger.error(err.message);
     return res.status(400).json(err);
   }
 });
@@ -140,7 +141,7 @@ router.delete("/:id", async (req, res) => {
     const aluguelDeltado = await Aluguel.deletar(id);
     res.status(200).json(aluguelDeltado);
   } catch (err) {
-    console.error(err.message);
+    logger.error(err.message);
     return res.status(statusCode).json(err);
   }
 });

@@ -1,4 +1,5 @@
 const db = require("../../config/database.js");
+const logger = require("../../config/logger.js");
 
 class Cliente {
   static async criar(clienteDados) {
@@ -50,7 +51,7 @@ class Cliente {
         id: results.insertId,
       };
     } catch (err) {
-      console.error("Erro ao criar cliente:", err);
+      logger.error("Erro ao criar cliente:", err);
       if (err.message.includes("já existe")) {
         throw new Error({
           message: "Já existe",
@@ -84,7 +85,7 @@ class Cliente {
       const results = await conn.execute(sql, [id]);
       return results[0];
     } catch (err) {
-      console.error("Erro ao buscar cliente por id: " + id + " error: " + err);
+      logger.error("Erro ao buscar cliente por id: " + id + " error: " + err);
       throw err;
     }
   }
@@ -100,7 +101,7 @@ class Cliente {
       const [results] = await conn.execute(sql, [email.trim().toLowerCase()]);
       return results[0];
     } catch (err) {
-      console.error(
+      logger.error(
         "Erro ao buscar cliente por email: " + email + " error: " + err
       );
       throw err;
@@ -118,7 +119,7 @@ class Cliente {
       const [results] = await conn.execute(sql, [nome.trim().toLowerCase()]);
       return results[0];
     } catch (err) {
-      console.error("Erro ao obter clientes por nome!");
+      logger.error("Erro ao obter clientes por nome!");
       throw new Error("Erro ao obter clientes por nome");
     }
   }
@@ -129,7 +130,7 @@ class Cliente {
       const [results] = await conn.execute("SELECT * FROM clientes ORDER BY ?", [orderBy]);
       return results;
     } catch (err) {
-      console.error("Erro ao obter todos os clientes!");
+      logger.error("Erro ao obter todos os clientes!");
       throw new Error("Erro ao tentar buscar todos os clientes");
     }
   }
@@ -144,7 +145,7 @@ class Cliente {
       `;
       const existenteClientes = await conn.execute(clienteExistenteSql, id);
       if (!existenteClientes.length) {
-        console.error("Cliente não encontrado pelo o id: " + id);
+        logger.error("Cliente não encontrado pelo o id: " + id);
         throw new Error("Cliente não encontrado");
       }
       const { nome, email, telefone, cpf, endereco } = novosDadosCliente;
@@ -165,7 +166,7 @@ class Cliente {
         endereco,
       ]);
     } catch (err) {
-      console.error("Erro ao atualizar Cliente: ", err);
+      logger.error("Erro ao atualizar Cliente: ", err);
       throw err;
     }
   }
@@ -189,7 +190,7 @@ class Cliente {
       return await conn.execute(sql, [nome, email, telefone, cpf, endereco]);
 
     } catch (err) {
-      console.error("Erro ao atualizar o cliente:", err);
+      logger.error("Erro ao atualizar o cliente:", err);
       if (err.message.includes("já existe")) {
         throw new Error({
           message: "Já existe",
@@ -225,7 +226,7 @@ class Cliente {
         message: "Cliente deletado com sucesso!",
       };
     } catch (err) {
-      console.error("Erro ao deletar Cliente: ", err);
+      logger.error("Erro ao deletar Cliente: ", err);
       throw new Error({
         message: "Error ao tentar delatar cliente. Error: "+ err,
         statusCode: 404,

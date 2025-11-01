@@ -1,4 +1,5 @@
 const db = require("../../config/database.js");
+const logger = require("../../config/logger.js");
 
 class Aluguel {
   static async criar(aluguel) {
@@ -20,7 +21,7 @@ class Aluguel {
             (cliente_id, roupa_id, data_aluguel, data_devolucao_prevista, valor_total, valor_taxa, usuario_id, subtotal )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?);
             `;
-      const [result]  =await conn.execute(sql, [
+      const [result] = await conn.execute(sql, [
         cliente_id,
         roupa_id,
         data_aluguel,
@@ -28,7 +29,7 @@ class Aluguel {
         valor_total,
         valor_taxa || 0,
         usuario_id,
-        valor_total
+        valor_total,
       ]);
 
       const aluguelId = result.insertId;
@@ -40,7 +41,7 @@ class Aluguel {
       `;
       const [updateResult] = await conn.execute(statusRoupaSql, [roupa_id]);
 
-      if (updateResult.affectedRows === 0){
+      if (updateResult.affectedRows === 0) {
         throw new Error("Roupa não encontrada para atualização de status");
       }
 
@@ -49,14 +50,14 @@ class Aluguel {
 
       return {
         success: true,
-        mesage: "Aluguel criado com sucesso!",
+        message: "Aluguel criado com sucesso!",
         id: aluguelId,
-        roupaAtualizada: updateResult.affectedRows > 0
+        roupaAtualizada: updateResult.affectedRows > 0,
       };
     } catch (err) {
-       // Rollback em caso de erro
+      // Rollback em caso de erro
       await conn.rollback();
-      console.error("Não foi possivél criar um aluguel. Error: " + err);
+      logger.error("Não foi possivél criar um aluguel. Error: " + err);
       throw new Error({
         message: "Error ao tentar criar um aluguel. Error:" + err.message,
       });
@@ -92,10 +93,9 @@ class Aluguel {
 
       return results;
     } catch (err) {
-      console.error("Não foi possível solicitar os alugueis. " + err);
+      logger.error("Não foi possível solicitar os alugueis. " + err);
       throw new Error({
         message: "Erro ao tentar obter todo os alugueis. Error: " + err,
-        statusCode: 400,
       });
     }
   }
@@ -127,10 +127,9 @@ class Aluguel {
 
       return results;
     } catch (err) {
-      console.error("Não foi possível solicitar os alugueis. " + err);
+      logger.error("Não foi possível solicitar os alugueis. " + err);
       throw new Error({
         message: "Erro ao tentar obter todo os alugueis. Error: " + err,
-        statusCode: 400,
       });
     }
   }
@@ -154,10 +153,9 @@ class Aluguel {
       const [results] = await conn.execute(sql, [id]);
       return results[0];
     } catch (err) {
-      console.error("Não foi possível solicitar os alugueis" + err);
+      logger.error("Não foi possível solicitar os alugueis" + err);
       throw new Error({
         message: "Erro ao tentar obter todo os alugueis por id. Error: " + err,
-        statusCode: 400,
       });
     }
   }
@@ -189,11 +187,10 @@ class Aluguel {
       ]);
       return results;
     } catch (err) {
-      console.error("Não foi possível solicitar os alugueis" + err);
+      logger.error("Não foi possível solicitar os alugueis" + err);
       throw new Error({
         message:
           "Erro ao tentar obter todo os alugueis por Data. Error: " + err,
-        statusCode: 400,
       });
     }
   }
@@ -217,12 +214,11 @@ class Aluguel {
       const [results] = await conn.execute(sql, [nome]);
       return results[0];
     } catch (err) {
-      console.error("Não foi possível solicitar os alugueis" + err);
+      logger.error("Não foi possível solicitar os alugueis" + err);
       throw new Error({
         message:
           "Erro ao tentar obter todo os alugueis por nome do cliente. Error: " +
           err,
-        statusCode: 400,
       });
     }
   }
@@ -246,12 +242,11 @@ class Aluguel {
       const [results] = await conn.execute(sql, [clienteId]);
       return results[0];
     } catch (err) {
-      console.error("Não foi possível solicitar os alugueis " + err);
+      logger.error("Não foi possível solicitar os alugueis " + err);
       throw new Error({
         message:
           "Erro ao tentar obter todo os alugueis por id do cliente. Error: " +
           err,
-        statusCode: 400,
       });
     }
   }
@@ -290,10 +285,9 @@ class Aluguel {
       ]);
       return results[0];
     } catch (err) {
-      console.error("Não foi possível atualizar o aluguel. Error: " + err);
+      logger.error("Não foi possível atualizar o aluguel. Error: " + err);
       throw new Error({
         message: "Não foi possível atualizar o aluguel. Error: " + err,
-        statusCode: 400,
       });
     }
   }
@@ -325,10 +319,9 @@ class Aluguel {
       ]);
       return results[0];
     } catch (err) {
-      console.error("Não foi possível concluir o aluguel. Error: " + err);
+      logger.error("Não foi possível concluir o aluguel. Error: " + err);
       throw new Error({
         message: "Não foi possível concluir o aluguel. Error: " + err,
-        statusCode: 400,
       });
     }
   }
@@ -344,13 +337,48 @@ class Aluguel {
       return {
         success: true,
         message: "Aluguel deletado com sucesso!",
-        statusCode: 200,
       };
     } catch (err) {
-      console.error("Não foi possíevel deletar o aluguel" + err);
+      logger.error("Não foi possíevel deletar o aluguel" + err);
       throw new Error({
         message: "Não foi possível deletar o aluguel" + err,
-        statusCode: 500,
+      });
+    }
+  }
+
+  static async obterAtrasados(data_devolucao_prevista, situacao) {
+    let conn;
+    try {
+      if (situacao === "atrasado") {
+        const sql = `
+            SELECT 
+              a.valor_total,
+              a.data_devolucao_prevista,
+              c.nome,
+              r.nome
+            FROM alugueis AS a
+            LEFT JOIN clientes as c on a.cliente_id=c.id
+            LEFT JOIN roupas as r ON a.roupa_id=r.id
+            WHERE  DATEDIFF(CURDATE(), data_devolucao_prevista) <= ?
+            AND situcao = ?
+        `;
+
+        conn = await db;
+        await conn.beginTransaction();
+        const [results] = await conn.execute(sql, [
+          data_devolucao_prevista,
+          situacao,
+        ]);
+        await conn.commit();
+        return results;
+      }
+    } catch (err) {
+      logger.error("Não foi possíevel obter o aluguel atrasado" + err);
+      if(conn){
+        await conn.rollback();
+      }
+      throw new Error({
+        message: "Não foi possível obter os alugueis atrasados" + err,
       });
     }
   }
