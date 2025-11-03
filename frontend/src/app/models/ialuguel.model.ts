@@ -13,4 +13,6 @@ export interface IAluguel {
     cliente?: string;
     roupa?: string;
     roupa_imagem?: string;
+    pago: boolean;
+    data_hora_faturamento: Date | string;
 }

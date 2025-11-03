@@ -1,5 +1,5 @@
-<div class="container mt-4">
-  <div class="row justify-content-center">
+<div class="container mt-4 aluguel__container">
+  <div class="row justify-content-center" [class.aluguel__form_blur]="abrirModalReceber">
     <div class="col-md-8">
       <div class="card">
         <div class="card-header">
@@ -49,7 +49,10 @@
                 @for (roupa of roupasDisponiveis; track $index) {
                 <option [value]="roupa.id">
                   {{ roupa.nome }} - {{ roupa.categoria }} ({{ roupa.tamanho }})
-                  - {{ roupa.preco_aluguel | currency:'BRL':'symbol':'1.2-2'}}
+                  -
+                  {{
+                    roupa.preco_aluguel | currency : "BRL" : "symbol" : "1.2-2"
+                  }}
                 </option>
                 }
               </select>
@@ -64,7 +67,10 @@
                 <div class="row">
                   <div class="col-md-4 text-center">
                     <img
-                      [src]="roupaSelecionada.imagem_url || 'images/image-placeholder.svg'"
+                      [src]="
+                        roupaSelecionada.imagem_url ||
+                        'images/image-placeholder.svg'
+                      "
                       class="img-fluid rounded"
                       [alt]="roupaSelecionada.nome"
                       style="max-height: 100px"
@@ -169,7 +175,12 @@
                 }
               </div>
               <div class="col-md-6 mb-3">
-                <label for="valor_taxa" class="form-label" title="taxa de atrasos por dia é em reais"  >Taxa Atrasado *</label>
+                <label
+                  for="valor_taxa"
+                  class="form-label"
+                  title="taxa de atrasos por dia é em reais"
+                  >Taxa Atrasado *</label
+                >
                 <div class="input-group">
                   <span class="input-group-text">R$</span>
                   <input
@@ -215,10 +226,23 @@
       </div>
     </div>
   </div>
-  <!-- @if(abrirModalReceber){ -->
-    <div class="receber-modal__container">
-
+  @if(abrirModalReceber){
+  <div class="receber-modal__container">
+    <div class="modal__content">
+      <button class="btn btn-close "></button>
+      <div class="modal__header py-2 text-black-50">
+        <h3 class="modal__title">Recebimento</h3>
+      </div>
+      <div class="modal_content">
+        <p class="modal__description text-body-secondary">
+          O Cliente irá pagar o aluguel ou uma parte dele agora?
+        </p>
+      </div>
+      <div class="modal__action">
+        <button class="btn btn-outline-primary" (click)="onPayNow()">Receber</button>
+        <button class="btn btn-outline-danger" (click)="onPayLater()">Receber na entrega</button>
+      </div>
     </div>
-  <!-- } -->
-
+  </div>
+  }
 </div>

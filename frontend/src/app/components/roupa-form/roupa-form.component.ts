@@ -57,8 +57,8 @@ export class RoupaFormComponent implements OnInit {
 
   ngOnInit(): void {
     // this.loadRoupaOptions();
-    this.roupasTamanhos = this.roupaService.getTamanhosMock();
-    this.roupasCategorias = this.roupaService.getCategoriasMock();
+    this.roupasTamanhos = this.roupaOptionsService.getRoupasTamanhos();
+    this.roupasCategorias = this.roupaOptionsService.getRoupasCategoriasMock();
   }
 
   focusPrecoCompra() {

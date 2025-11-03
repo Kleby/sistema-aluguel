@@ -13,13 +13,14 @@ import { ClienteService } from '../../services/cliente.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RoupaOptionsService } from '../../services/roupa-options.service';
 import { IRoupaOptions } from '../../models/iroupas-options.model';
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-aluguel-form',
   imports: [ReactiveFormsModule, CurrencyPipe],
   templateUrl: './aluguel-form.component.html',
   styleUrl: './aluguel-form.component.css',
+  providers: [DatePipe],
 })
 export class AluguelFormComponent implements OnInit {
   aluguelForm: FormGroup;
@@ -27,7 +28,7 @@ export class AluguelFormComponent implements OnInit {
   clientes: ICliente[] = [];
   roupasDisponiveis: IRoupa[] = [];
   roupaSelecionada: IRoupa | null = null;
-  
+
   abrirModalReceber: boolean = false;
 
   categorias: IRoupaOptions[] = [];
@@ -40,7 +41,8 @@ export class AluguelFormComponent implements OnInit {
     private clienteService: ClienteService,
     private roupaOptionsService: RoupaOptionsService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private datePipe: DatePipe
   ) {
     this.aluguelForm = this.fb.group({
       cliente_id: ['', Validators.required],
@@ -52,6 +54,8 @@ export class AluguelFormComponent implements OnInit {
       data_devolucao_prevista: ['', Validators.required],
       valor_total: [0, [Validators.required, Validators.min(0)]],
       valor_taxa: ['', Validators.required],
+      pago: [false],
+      data_hora_faturamento: [''],
     });
   }
 
@@ -59,7 +63,7 @@ export class AluguelFormComponent implements OnInit {
     // this.loadClientes();
     // this.loadRoupasDisponiveis();
     this.loadClientesMock();
-    this.loadRoupasDisponivelMock();    
+    this.loadRoupasDisponivelMock();
     // Verificar se há uma roupa pré-selecionada via query params
     this.route.queryParams.subscribe((params) => {
       if (params['roupa_id']) {
@@ -137,45 +141,48 @@ export class AluguelFormComponent implements OnInit {
     }
   }
 
-  onSubmitMock(){
+  onSubmitMock() {
     if (this.aluguelForm.valid) {
+      this.abrirModalReceber = true;
       this.isLoading = true;
-      this.aluguelService.addAlugueisMock(this.aluguelForm.value);
-      setTimeout(() => {
-        this.isLoading = false;
-        alert('Aluguel realizado com sucesso!');
-        this.router.navigate(['/dashboard']);
-      },500)
-
     } else {
       this.markFormGroupTouched();
     }
+  }
+  
+  onPayLater() {
+    this.aluguelForm.get('pago')?.setValue(false);
+    this.aluguelForm.get("data_hora_faturamento")?.setValue(this.aluguelForm.get("data_devolucao_prevista"));
+    this.aluguelService.addAlugueisMock(this.aluguelForm.value);
+    
+    setTimeout(() => {
+      this.isLoading = false;
+      alert('Aluguel realizado com sucesso!');
+      this.router.navigate(['/dashboard']);
+    }, 500);
+  }
+  
+  onPayNow() {
+    this.aluguelForm.get('pago')?.setValue(true);
+    this.aluguelForm
+    .get('data_hora_faturamento')
+    ?.setValue(this.datePipe.transform(new Date(), 'yyyy-MM-dd HH:mm:ss'));
+    this.aluguelService.addAlugueisMock(this.aluguelForm.value);
+    setTimeout(() => {
+      this.isLoading = false;
+      alert('Aluguel realizado com sucesso!');
+      this.router.navigate(['/dashboard']);
+    }, 500);
+
   }
 
   onSubmit(): void {
     if (this.aluguelForm.valid) {
       this.isLoading = true;
-
-      this.aluguelService.createAluguel(this.aluguelForm.value).subscribe({
-        next: (response) => {
-          this.isLoading = false;
-          alert('Aluguel realizado com sucesso!');
-          this.router.navigate(['/dashboard']);
-        },
-        error: (error) => {
-          this.isLoading = false;
-          console.error('Erro ao criar aluguel:', error);
-          alert(error.error?.error || 'Erro ao realizar aluguel');
-        },
-      });
+      this.abrirModalReceber = true;
     } else {
       this.markFormGroupTouched();
     }
-  }
-
-  teste() {
-    const { valor_taxa } = this.aluguelForm.value;
-    console.log(valor_taxa);
   }
 
   private markFormGroupTouched(): void {

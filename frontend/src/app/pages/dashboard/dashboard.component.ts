@@ -11,6 +11,7 @@ import { CardsDestaqueComponent } from '../../components/cards-destaque/cards-de
 import { IRoupa } from '../../models/iroupa.model';
 import { SITUACAO_STYLES_BADGE } from '../../utils/design.constants';
 import { IAluguel } from '../../models/ialuguel.model';
+import { RecebimentoService } from '../../services/recebimento.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -55,6 +56,9 @@ export class DashboardComponent {
     alugueisAtivos: 0,
     alugueisAtrasados: 0,
     totalClientes: 0,
+    // faturamentoProcessada:0,
+    faturamentoReceber:0,
+    totalFaturamentoAtual: 0
   };
 
   recentAlugueis: IAluguel[] = [];
@@ -65,6 +69,7 @@ export class DashboardComponent {
     private roupaService: RoupaService,
     private aluguelService: AluguelService,
     private clienteService: ClienteService,
+    private recebimentoService: RecebimentoService,
     private router: Router
   ) {}
 
@@ -79,6 +84,10 @@ export class DashboardComponent {
     );
   }
 
+  onPrint(){
+    
+  }
+
   loadDashboardDataMock(): void {
     this.isLoading = true;
     this.loadRoupasStatsMock(),
@@ -86,6 +95,7 @@ export class DashboardComponent {
       this.loadClientesStatsMock(),
       this.loadRecentAlugueisMock(),
       this.loadRoupasPopularesMock(),
+      this.loadRecebimentosMock(),
       setTimeout(() => {
         this.isLoading = false;
       }, 500);
@@ -140,6 +150,16 @@ export class DashboardComponent {
       .filter((r) => r.status === 'disponivel')
       .sort((a, b) => b.preco_aluguel - a.preco_aluguel)
       .slice(0, 4);
+  }
+  loadRecebimentosMock(): void{
+    const faturamentos = this.recebimentoService.getRecebimentos();
+    const hoje = new Date();
+    this.statsMock.totalFaturamentoAtual = faturamentos
+          .filter( f => f.data_hora_faturamento === hoje && f.pago)
+          .reduce((acc, curr) => acc+curr.valor_total, 0);
+    this.statsMock.faturamentoReceber = faturamentos
+          .filter(f => f.data_hora_faturamento >= hoje)
+          .reduce((acc, curr) => acc+curr.valor_total, 0)  
   }
 
   // Fim dos mockes

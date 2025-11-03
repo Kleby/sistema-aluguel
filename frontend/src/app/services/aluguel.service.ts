@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { IAluguel } from '../models/ialuguel.model';
 import { HttpClient } from '@angular/common/http';
 import { IRoupaOptions } from '../models/iroupas-options.model';
+import { RecebimentoService } from './recebimento.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +13,7 @@ export class AluguelService {
 
   private listAluguelMock: IAluguel[] = [];
 
-  private readonly aluguelMock = {
+  private readonly aluguelMock:IAluguel = {
     id: 0,
     cliente_id: 0,
     roupa_id: 0,
@@ -24,17 +25,21 @@ export class AluguelService {
     valor_total: 0,
     situacao: '',
     valor_taxa: 0,
-    cliente_nome: '',
-    roupa_nome: '',
+    cliente: '',
+    roupa: '',
+    pago: false,
+    data_hora_faturamento: new Date().toLocaleString(),
   };
 
-  constructor(private http: HttpClient) {}
+  //simular o backend com adição de recebiemntos services
+  constructor(private http: HttpClient, private recebimentoService :RecebimentoService) {}
 
   getAlugueisMock(): IAluguel[] {
     return this.listAluguelMock;
   }
 
   addAlugueisMock(aluguel: IAluguel) {
+    this.recebimentoService.addRecebimentos(aluguel);
     this.listAluguelMock.push(aluguel);
   }
 

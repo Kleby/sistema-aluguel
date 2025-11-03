@@ -19,7 +19,7 @@
     /* Propriedades adicionais para melhor visualização */
     font-weight: bold;
     display: inline-block; 
-}
+  }
 .nav-link {
   display: flex;
   flex-direction: column;

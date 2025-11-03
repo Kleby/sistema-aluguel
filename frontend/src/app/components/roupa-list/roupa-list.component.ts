@@ -40,7 +40,7 @@ export class RoupaListComponent implements OnInit {
     const roupas =this.roupaService.getRoupasMock(); 
     this.roupas = roupas;
     this.roupasFiltradas = roupas;
-    this.categorias = this.roupaService.getCategoriasMock();
+    this.categorias = this.roupaOptionsService.getRoupasCategoriasMock();
     setTimeout(()=>{
       this.isLoading = false;
     }, 500)
