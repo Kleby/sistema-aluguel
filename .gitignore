@@ -9,3 +9,4 @@
 /api/tokens
 schema.sql
 /.vscode
+/frontend/dist/loja/browser
