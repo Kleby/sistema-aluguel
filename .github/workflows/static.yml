@@ -35,12 +35,12 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Use uma versão LTS do Node.js compatível com seu Angular
+          node-version: '22' # Use uma versão LTS do Node.js compatível com seu Angular
           cache: 'npm'
       - name: Install dependencies
         run: npm install
       - name: Build Angular project
-        run: npm run build -- --base-href=/loja/ 
+        run: npm run build --base-href=/loja/ 
         # ----------
       - name: Setup Pages
         uses: actions/configure-pages@v5
