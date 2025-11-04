@@ -40,7 +40,7 @@ jobs:
           cache-dependency-path: 'frontend/package-lock.json'
           
       - name: Install dependencies
-        run: npm install --prefix frontend --prefix frontend
+        run: npm install --prefix frontend 
       - name: Build Angular project
         run: npm run build --base-href=/loja/ --prefix frontend
         # ----------
