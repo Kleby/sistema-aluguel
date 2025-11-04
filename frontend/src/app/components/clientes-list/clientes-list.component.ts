@@ -20,7 +20,6 @@ export class ClientesListComponent implements OnInit {
   ngOnInit(): void {
     // this.loadClientes();
     this.loadClientesMock();
-    console.log(this.clientes);
     
   }
 

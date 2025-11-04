@@ -52,8 +52,10 @@ export class ClienteService {
   }
 
   getClienteMock(id: number): ICliente {
-    return this.listClientesMock.find((c) => c.id === id) ?? this.clienteMock;
+    return this.listClientesMock.find((c) => c.id === Number(id)
+    ) ?? this.clienteMock;
   }
+  
   addClienteMock(cliente: ICliente): void {
     this.listClientesMock.push(cliente);
   }

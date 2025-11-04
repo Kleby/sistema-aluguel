@@ -3,6 +3,7 @@ import { RoupaService } from '../../services/roupa.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   FormBuilder,
+  FormControl,
   FormGroup,
   ReactiveFormsModule,
   Validators,
@@ -28,8 +29,15 @@ export class RoupaFormComponent implements OnInit {
 
   private readonly PERCENTAGEM = 0.01;
 
-  status = ['disponivel', 'alugado', 'manutencao'];
+  roupaOptionsForm: IRoupaOptionForm = {
+    title: "",
+    label: "",
+    isOpen: false,
+    formControl: new FormControl(),
+    isCategoryoption: true,
+  }
 
+  status = ['disponivel', 'alugado', 'manutencao'];
 
   roupasTamanhos: IRoupaOptions[] = [];
   roupasCategorias: IRoupaOptions[] = [];
@@ -57,8 +65,7 @@ export class RoupaFormComponent implements OnInit {
 
   ngOnInit(): void {
     // this.loadRoupaOptions();
-    this.roupasTamanhos = this.roupaOptionsService.getRoupasTamanhos();
-    this.roupasCategorias = this.roupaOptionsService.getRoupasCategoriasMock();
+    this.loadRoupaOptionsMock();
   }
 
   focusPrecoCompra() {
@@ -73,6 +80,44 @@ export class RoupaFormComponent implements OnInit {
     this.roupaForm
       .get('preco_aluguel')
       ?.setValue(rentabilidade * precoCompra * this.PERCENTAGEM);
+  }
+
+  openCategoryForm() {
+    this.roupaOptionsForm = {
+      title: 'Cadastrar uma nova categoria',
+      label: 'Categoria',
+      isOpen: true,
+      formControl: new FormControl(),
+      isCategoryoption: true,
+    }
+  };
+  openSizeForm() {
+    this.roupaOptionsForm = {
+      title: 'Cadastrar um novo Tamanho',
+      label: 'Tamanho',
+      isOpen: true,
+      formControl: new FormControl(),
+      isCategoryoption: false,
+    }
+  }
+
+  addRoupaOption() {
+    // if(this.categoryContents.isOpenCategoryForm){
+    const value = this.roupaOptionsForm.formControl.value;
+    if(this.roupaOptionsForm.isCategoryoption){
+      this.roupaOptionsService.addRoupaCategoriaMock({nome: value, id: this.roupasCategorias.length +1});
+      // this.loadRoupaOptions();
+    }
+    else {
+      this.roupaOptionsService.addRoupaTamanhoMock({nome: value, id: this.roupasTamanhos.length +1});
+    }
+    this.loadRoupaOptionsMock();
+    this.roupaOptionsForm.isOpen = false;
+  }
+
+  loadRoupaOptionsMock(){
+    this.roupasTamanhos = this.roupaOptionsService.getRoupasTamanhos();
+    this.roupasCategorias = this.roupaOptionsService.getRoupasCategoriasMock();
   }
 
   getRetabilidadeValue(): number {
@@ -142,17 +187,16 @@ export class RoupaFormComponent implements OnInit {
     }
   }
 
-  onSubmitMock(){
-    if(this.roupaForm.valid){
-      this.isLoading = true; 
+  onSubmitMock() {
+    if (this.roupaForm.valid) {
+      this.isLoading = true;
       this.roupaService.addRoupaMock(this.roupaForm.value);
-          this.isLoading = false;
-          alert('Roupa cadastrada com sucesso!');
-          this.router.navigate(['/roupas']);
+      this.isLoading = false;
+      alert('Roupa cadastrada com sucesso!');
+      this.router.navigate(['/roupas']);
     } else {
       this.markFormGroupTouched();
     }
-
   }
 
   onSubmit(): void {
@@ -186,7 +230,20 @@ export class RoupaFormComponent implements OnInit {
     });
   }
 
+  closeModal() {
+    this.roupaOptionsForm.isOpen = false;
+  }
+
   cancel(): void {
     this.router.navigate(['/roupas']);
   }
 }
+
+
+interface IRoupaOptionForm {
+    title: string;
+    label: string;
+    isOpen: boolean
+    formControl: FormControl;
+    isCategoryoption: boolean ;
+  }

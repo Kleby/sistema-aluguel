@@ -1,5 +1,5 @@
 <div class="container mt-3">
-  <div class="row justify-content-center">
+  <div class="row justify-content-center" [class.form_blur]="roupaOptionsForm.isOpen">
     <div class="col-md-8">
       <div class="card">
         <div class="card-header">
@@ -99,7 +99,12 @@
             <div class="row">
               <!-- Tamanho -->
               <div class="col-md-6 mb-3">
-                <label for="tamanho" class="form-label mb-1">Tamanho *</label>
+                 <div class="roupa-option__content">
+                  <label for="tamanho" class="form-label mb-1">Tamanho *</label>
+                  <button class="btn btn-add" title="Adicionar nova categoria" (click)="openSizeForm()">
+                    <i class="fa fa-circle-plus fs-5"></i>
+                  </button>
+                </div>
                 <select
                   class="form-select"
                   id="tamanho"
@@ -124,9 +129,14 @@
 
               <!-- Categoria -->
               <div class="col-md-6 mb-3">
-                <label for="categoria" class="form-label mb-1"
-                  >Categoria *</label
-                >
+                <div class="roupa-option__content">
+
+                  <label for="categoria" class="form-label mb-1"
+                  >Categoria *</label>
+                  <button class="btn btn-add" title="Adicionar nova categoria" (click)="openCategoryForm()">
+                    <i class="fa fa-circle-plus fs-5"></i>
+                  </button>
+                </div>
                 <select
                   class="form-select"
                   id="categoria"
@@ -295,3 +305,36 @@
     </div>
   </div>
 </div>
+@if(roupaOptionsForm.isOpen){
+  <div class="modal__container">
+    <div class="modal__content">
+      <!-- <form (ngSubmit)="addRoupaOption($event)"> -->
+
+        <button class="btn btn-close " (click)="closeModal()"></button>
+        <div class="modal__header py-2 text-black-50">
+          <h3 class="modal__title fs-5">{{roupaOptionsForm.title}}</h3>
+        </div>
+        <div class="from-goup">
+          
+          <label for="category" class="form-label">{{roupaOptionsForm.label}}</label>
+          <div class="input-group">
+            <input type="text" class="form-control" [formControl]="roupaOptionsForm.formControl">
+          </div>
+        </div>
+        <div class="modal__action d-flex gap-2 mt-4">
+          <button class="btn btn-success d-flex gap-1" (click)="addRoupaOption()">
+            <span class="text-light">Adicionar</span>
+            <i class="fa fa-circle-plus fs-4"></i>
+          </button>
+          <button class="btn btn-danger d-flex" (click)="closeModal()">
+            <span class="text-light">
+              cancelar
+            </span>
+            <i class="fa fa-xmark fs-4">
+            </i>
+          </button>
+        </div>
+      <!-- </form> -->
+    </div>
+  </div>
+}

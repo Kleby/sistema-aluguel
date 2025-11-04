@@ -289,14 +289,14 @@
             <table class="table table-hover">
               <thead>
                 <tr>
-                  <th>Faturamento Hoje</th>
-                  <th>A Receber</th>
+                  <th class="text-success" >Faturamento Hoje</th>
+                  <th class="text-warning">A Receber</th>
                 </tr>
               </thead>
               <tbody>
                 <tr class="align-middle">
                   <td>
-                    {{ statsMock.faturamentoReceber | currency:'BRL':'symbol':'1.2-2'}}
+                    {{ statsMock.totalFaturamentoAtual | currency:'BRL':'symbol':'1.2-2'}}
                   </td>
                   <td>{{ statsMock.faturamentoReceber | currency:'BRL':'symbol':'1.2-2'}}</td>
                 </tr>

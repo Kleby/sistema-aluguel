@@ -73,7 +73,7 @@ export class RoupaOptionsService {
     return this.tamanhosMock;
   }
 
-  addRoupaTamanho(tamanho: IRoupaOptions){
+  addRoupaTamanhoMock(tamanho: IRoupaOptions){
     this.tamanhosMock.push(tamanho);
   }
 

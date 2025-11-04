@@ -18,7 +18,7 @@ export class RecebimentoService {
   
   addRecebimentos(aluguel:IAluguel) {
     const {valor_total, data_hora_faturamento, cliente, pago } = aluguel;
-    this.recebimentos.push({valor_total, data_hora_faturamento, cliente, pago});
+    this.recebimentos.push({valor_total, data_hora_faturamento, cliente, pago});    
   }  
 }
 

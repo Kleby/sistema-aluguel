@@ -1,5 +1,5 @@
 <div class="container mt-4 aluguel__container">
-  <div class="row justify-content-center" [class.aluguel__form_blur]="abrirModalReceber">
+  <div class="row justify-content-center" [class.form_blur]="abrirModalReceber">
     <div class="col-md-8">
       <div class="card">
         <div class="card-header">
@@ -12,7 +12,12 @@
           <form (ngSubmit)="onSubmitMock()" [formGroup]="aluguelForm">
             <!-- Cliente -->
             <div class="mb-3">
-              <label for="cliente_id" class="form-label">Cliente *</label>
+              <div class="cliente__content">
+                <label for="cliente_id" class="form-label">Cliente *</label>
+                <a class="btn btn-add" title="Adicionar um novo cliente" [routerLink]="['/clientes/novo']" >
+                  <i class="fa fa-circle-plus text-primary fs-4"></i>
+                </a>
+              </div>
               <select
                 class="form-select"
                 id="cliente_id"
@@ -77,6 +82,9 @@
                     />
                   </div>
                   <div class="col-md-8">
+                    <p class="mb-1">
+                      <strong>{{ roupaSelecionada.id }}</strong>
+                    </p>
                     <p class="mb-1">
                       <strong>{{ roupaSelecionada.nome }}</strong>
                     </p>
@@ -227,9 +235,9 @@
     </div>
   </div>
   @if(abrirModalReceber){
-  <div class="receber-modal__container">
+  <div class="modal__container">
     <div class="modal__content">
-      <button class="btn btn-close "></button>
+      <button class="btn btn-close " (click)="closeModal()"></button>
       <div class="modal__header py-2 text-black-50">
         <h3 class="modal__title">Recebimento</h3>
       </div>
@@ -239,8 +247,8 @@
         </p>
       </div>
       <div class="modal__action">
-        <button class="btn btn-outline-primary" (click)="onPayNow()">Receber</button>
-        <button class="btn btn-outline-danger" (click)="onPayLater()">Receber na entrega</button>
+        <button class="btn btn-success" (click)="onPayNow()">Receber agora</button>
+        <button class="btn btn-warning" (click)="onPayLater()">Receber na entrega</button>
       </div>
     </div>
   </div>

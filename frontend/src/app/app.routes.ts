@@ -35,60 +35,64 @@ export const routes: Routes = [
     path: 'dashboard',
     component: DashboardComponent,
     title: 'DashBoard',
-    canActivate: [authGuard],
+    // canActivate: [authGuard],
   },
   {
     path: 'roupas',
     component: RoupaListComponent,
     title: 'Roupas',
-    canActivate: [authGuard],
+    // canActivate: [authGuard],
   },
   {
     path: 'roupas/nova',
     component: RoupaFormComponent,
     title: 'Roupas',
-    canActivate: [authGuard],
+    // canActivate: [authGuard],
   },
   {
     path: 'roupas/editar/:id',
     component: AtualizaRoupaComponent,
-    canActivate: [authGuard],
+    // canActivate: [authGuard],
   },
 
   // Rotas protegidas - apenas admin
   {
     path: 'clientes',
     component: ClientesListComponent,
-    canActivate: [authGuard],
+    // canActivate: [authGuard],
     data: { admin: true },
   },
   {
     path: 'clientes/novo',
     component: ClienteFormComponent,
-    canActivate: [authGuard],
+    // canActivate: [authGuard],
     data: { admin: true },
   },
 
   {
     path: 'clientes/editar/:id',
     component: ClienteFormComponent,
-    canActivate: [authGuard],
+    // canActivate: [authGuard],
     data: { admin: true },
   },
 
   {
-    path:"alugueis", component: AlugueisComponent, title: "Alugueis Ativos",  canActivate: [authGuard]
+    path:"alugueis", component: AlugueisComponent, title: "Alugueis Ativos",  
+    // canActivate: [authGuard]
   },
   {
-    path:"alugueis/id/:id", component: ClienteRoupaModalComponent, title: "Alugueis Ativos",  canActivate: [authGuard]
-  },
-
-  {
-    path:"alugueis/novo", component: AluguelFormComponent, canActivate: [authGuard]
+    path:"alugueis/id/:id", component: ClienteRoupaModalComponent, title: "Alugueis Ativos",  
+    // canActivate: [authGuard]
   },
 
   {
-    path:"bot-mensagens", component: MensagensComponent, canActivate: [authGuard]
+    path:"alugueis/novo", component: AluguelFormComponent, 
+    // canActivate: [authGuard]
+  },
+
+  {
+    path:"bot-mensagens", component: MensagensComponent, 
+    // canActivate: [authGuard]
   },
 
   { path: '**', redirectTo: '/dashboard' },

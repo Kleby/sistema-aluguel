@@ -10,14 +10,14 @@ import { IRoupa } from '../../models/iroupa.model';
 import { AluguelService } from '../../services/aluguel.service';
 import { RoupaService } from '../../services/roupa.service';
 import { ClienteService } from '../../services/cliente.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { RoupaOptionsService } from '../../services/roupa-options.service';
 import { IRoupaOptions } from '../../models/iroupas-options.model';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-aluguel-form',
-  imports: [ReactiveFormsModule, CurrencyPipe],
+  imports: [ReactiveFormsModule, CurrencyPipe, RouterLink],
   templateUrl: './aluguel-form.component.html',
   styleUrl: './aluguel-form.component.css',
   providers: [DatePipe],
@@ -56,14 +56,15 @@ export class AluguelFormComponent implements OnInit {
       valor_taxa: ['', Validators.required],
       pago: [false],
       data_hora_faturamento: [''],
+      situacao: ['ativo']
     });
   }
 
   ngOnInit(): void {
     // this.loadClientes();
     // this.loadRoupasDisponiveis();
-    this.loadClientesMock();
-    this.loadRoupasDisponivelMock();
+    this.loadClientesMock();    
+    this.loadRoupaDisponivelMock();
     // Verificar se há uma roupa pré-selecionada via query params
     this.route.queryParams.subscribe((params) => {
       if (params['roupa_id']) {
@@ -78,9 +79,11 @@ export class AluguelFormComponent implements OnInit {
   loadClientesMock() {
     this.clientes = this.clienteService.getClientesMock();
   }
-  loadRoupasDisponivelMock() {
-    this.roupasDisponiveis = this.roupaService.getRoupasMock();
+
+  loadRoupaDisponivelMock(){
+    this.roupasDisponiveis = this.roupaService.getRoupasMock().filter(r => r.status === 'disponivel');
   }
+
 
   loadClientes(): void {
     this.clienteService.getClientes().subscribe({
@@ -110,7 +113,8 @@ export class AluguelFormComponent implements OnInit {
 
   onRoupaSelecionada(): void {
     const roupaId = this.aluguelForm.get('roupa_id')?.value;
-    const roupa = this.roupasDisponiveis.find((r) => r.id == roupaId);
+    // const roupa = this.roupasDisponiveis.find((r) => r.id == roupaId);
+    const roupa = this.roupasDisponiveis.find(r => r.id = roupaId);
 
     if (roupa) {
       this.roupaSelecionada = roupa;
@@ -193,6 +197,11 @@ export class AluguelFormComponent implements OnInit {
 
   cancel(): void {
     this.router.navigate(['/roupas']);
+  }
+  
+  closeModal(): void {
+    this.abrirModalReceber = false;
+    this.isLoading = false;
   }
 
   formatCurrency(value: number): string {

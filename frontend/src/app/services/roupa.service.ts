@@ -65,9 +65,10 @@ export class RoupaService {
   getRoupasMock(): IRoupa[] {
     return this.roupasMock;
   }
-  getRoupaMock(id: number): IRoupa {
-    return this.roupasMock.find((roupa) => roupa.id === id) ?? this.roupaMock;
+  getRoupaMock(id: number): IRoupa { 
+    return this.roupasMock.find((roupa) => Number(roupa.id) === Number(id)) ?? this.roupaMock;
   }
+
   addRoupaMock(roupa: IRoupa): void {
     this.roupasMock.push(roupa);
   }

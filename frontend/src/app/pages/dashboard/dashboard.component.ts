@@ -12,6 +12,7 @@ import { IRoupa } from '../../models/iroupa.model';
 import { SITUACAO_STYLES_BADGE } from '../../utils/design.constants';
 import { IAluguel } from '../../models/ialuguel.model';
 import { RecebimentoService } from '../../services/recebimento.service';
+import { ICliente } from '../../models/icliente.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -27,13 +28,13 @@ import { RecebimentoService } from '../../services/recebimento.service';
 })
 export class DashboardComponent {
   user: IUser | null = {
-      id: 1,
-      nome: 'Admin',
-      email: 'admin@loja.com',
-      tipo: 'admin',
-      status: 'ativo',
-      data_expiracao: '2032-09-09 20:00:00',
-    };
+    id: 1,
+    nome: 'Admin',
+    email: 'admin@loja.com',
+    tipo: 'admin',
+    status: 'ativo',
+    data_expiracao: '2032-09-09 20:00:00',
+  };
   isLoading = true;
   situacaoStyles = SITUACAO_STYLES_BADGE;
 
@@ -57,8 +58,8 @@ export class DashboardComponent {
     alugueisAtrasados: 0,
     totalClientes: 0,
     // faturamentoProcessada:0,
-    faturamentoReceber:0,
-    totalFaturamentoAtual: 0
+    faturamentoReceber: 0,
+    totalFaturamentoAtual: 0,
   };
 
   recentAlugueis: IAluguel[] = [];
@@ -76,7 +77,7 @@ export class DashboardComponent {
   ngOnInit(): void {
     // this.getCurrentUser();
     // this.loadDashboardData();
-    this.loadDashboardDataMock();    
+    this.loadDashboardDataMock();
   }
   getCurrentUser(): void {
     this.authService.currentUser$.subscribe(
@@ -84,17 +85,15 @@ export class DashboardComponent {
     );
   }
 
-  onPrint(){
-    
-  }
+  onPrint() {}
 
   loadDashboardDataMock(): void {
     this.isLoading = true;
     this.loadRoupasStatsMock(),
+    this.loadClientesStatsMock(),
+    this.loadRecentAlugueisMock(),
+    this.loadRoupasPopularesMock(),
       this.loadAlugueisStatsMock(),
-      this.loadClientesStatsMock(),
-      this.loadRecentAlugueisMock(),
-      this.loadRoupasPopularesMock(),
       this.loadRecebimentosMock(),
       setTimeout(() => {
         this.isLoading = false;
@@ -103,15 +102,15 @@ export class DashboardComponent {
 
   // Carregar dados mockado
   loadRoupasStatsMock(): void {
-    const roupas = this.roupaService.getRoupasMock();
-    this.statsMock.totalRoupas = roupas.length;
-    this.statsMock.roupasDisponiveis = roupas.filter(
+    const roupasMock = this.roupaService.getRoupasMock();
+    this.statsMock.totalRoupas = roupasMock.length;
+    this.statsMock.roupasDisponiveis = roupasMock.filter(
       (r) => r.status === 'disponivel'
     ).length;
-    this.statsMock.roupasAlugadas = roupas.filter(
+    this.statsMock.roupasAlugadas = roupasMock.filter(
       (r) => r.status === 'alugado'
     ).length;
-    this.statsMock.roupasManutencao = roupas.filter(
+    this.statsMock.roupasManutencao = roupasMock.filter(
       (r) => r.status === 'manutencao'
     ).length;
   }
@@ -131,8 +130,8 @@ export class DashboardComponent {
     }).length;
   }
   loadClientesStatsMock() {
-    const clientes = this.clienteService.getClientesMock();
-    this.statsMock.totalClientes = clientes.length;
+    const clientsMock = this.clienteService.getClientesMock();    
+    this.statsMock.totalClientes = clientsMock.length;
   }
   loadRecentAlugueisMock(): void {
     this.recentAlugueis = this.aluguelService
@@ -143,6 +142,13 @@ export class DashboardComponent {
           new Date(a.data_aluguel).getTime()
       )
       .slice(0, 5);
+      this.recentAlugueis.forEach(ra => {
+        ra.cliente = this.clienteService.getClienteMock(ra.cliente_id).nome;
+        ra.roupa = this.roupaService.getRoupaMock(ra.roupa_id).nome;
+        return ra;
+      })
+      
+      
   }
   loadRoupasPopularesMock(): void {
     this.roupasPopulares = this.roupaService
@@ -151,15 +157,20 @@ export class DashboardComponent {
       .sort((a, b) => b.preco_aluguel - a.preco_aluguel)
       .slice(0, 4);
   }
-  loadRecebimentosMock(): void{
+  loadRecebimentosMock(): void {
     const faturamentos = this.recebimentoService.getRecebimentos();
-    const hoje = new Date();
+    const hoje = new Date().toLocaleString();
     this.statsMock.totalFaturamentoAtual = faturamentos
-          .filter( f => f.data_hora_faturamento === hoje && f.pago)
-          .reduce((acc, curr) => acc+curr.valor_total, 0);
+      .filter(
+        (f) =>
+          new Date(f.data_hora_faturamento).toLocaleDateString() ===
+            hoje.split(',')[0] && f.pago
+      )
+      .reduce((acc, curr) => acc + curr.valor_total, 0);
+
     this.statsMock.faturamentoReceber = faturamentos
-          .filter(f => f.data_hora_faturamento >= hoje)
-          .reduce((acc, curr) => acc+curr.valor_total, 0)  
+      .filter((f) => !f.pago)
+      .reduce((acc, curr) => acc + curr.valor_total, 0);
   }
 
   // Fim dos mockes
@@ -288,7 +299,7 @@ export class DashboardComponent {
     });
   }
 
-  getDaysUntilExpiration(): number {   
+  getDaysUntilExpiration(): number {
     if (!this.user?.data_expiracao) return 0;
     const expiration = new Date(this.user.data_expiracao);
     const today = new Date();

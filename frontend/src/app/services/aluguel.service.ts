@@ -4,6 +4,7 @@ import { IAluguel } from '../models/ialuguel.model';
 import { HttpClient } from '@angular/common/http';
 import { IRoupaOptions } from '../models/iroupas-options.model';
 import { RecebimentoService } from './recebimento.service';
+import { RoupaService } from './roupa.service';
 
 @Injectable({
   providedIn: 'root',
@@ -13,7 +14,7 @@ export class AluguelService {
 
   private listAluguelMock: IAluguel[] = [];
 
-  private readonly aluguelMock:IAluguel = {
+  private readonly aluguelMock: IAluguel = {
     id: 0,
     cliente_id: 0,
     roupa_id: 0,
@@ -32,7 +33,11 @@ export class AluguelService {
   };
 
   //simular o backend com adição de recebiemntos services
-  constructor(private http: HttpClient, private recebimentoService :RecebimentoService) {}
+  constructor(
+    private http: HttpClient,
+    private recebimentoService: RecebimentoService,
+    private roupaService: RoupaService
+  ) {}
 
   getAlugueisMock(): IAluguel[] {
     return this.listAluguelMock;
@@ -40,6 +45,9 @@ export class AluguelService {
 
   addAlugueisMock(aluguel: IAluguel) {
     this.recebimentoService.addRecebimentos(aluguel);
+    const roupa = this.roupaService.getRoupaMock(Number(aluguel.roupa_id));
+    roupa.status = 'alugado';
+    this.roupaService.updateRoupaMock(aluguel.roupa_id, roupa);
     this.listAluguelMock.push(aluguel);
   }
 
@@ -47,23 +55,23 @@ export class AluguelService {
     return this.listAluguelMock.find((al) => al.id === id) ?? this.aluguelMock;
   }
 
-  updateAlugueisMock(id: number, aluguel:IAluguel){
-    const index = this.listAluguelMock.findIndex((al) => al.id === id)
+  updateAlugueisMock(id: number, aluguel: IAluguel) {
+    const index = this.listAluguelMock.findIndex((al) => al.id === id);
     if (index !== -1) {
-      alert("Não foi possível atualizar o aluguel");
-      return
+      alert('Não foi possível atualizar o aluguel');
+      return;
     }
     this.listAluguelMock[index] = aluguel;
   }
 
-  deleteAlugueisMock(id:number){
+  deleteAlugueisMock(id: number) {
     const index = this.listAluguelMock.findIndex((al) => al.id === id);
-    if (index !== -1){
-      alert("não foi possível deletar o aluguel");
+    if (index !== -1) {
+      alert('não foi possível deletar o aluguel');
       return;
     }
     this.listAluguelMock.splice(index, 1);
-  } 
+  }
 
   getAlugueis(): Observable<IAluguel[]> {
     return this.http.get<IAluguel[]>(this.apiUrl);
