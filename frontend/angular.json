@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "loja-roupas-frontend": {
+    "loja": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -59,10 +59,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "loja-roupas-frontend:build:production"
+              "buildTarget": "loja:build:production"
             },
             "development": {
-              "buildTarget": "loja-roupas-frontend:build:development"
+              "buildTarget": "loja:build:development"
             }
           },
           "defaultConfiguration": "development"
