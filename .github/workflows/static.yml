@@ -37,8 +37,10 @@ jobs:
         with:
           node-version: '22' # Use uma versão LTS do Node.js compatível com seu Angular
           cache: 'npm'
+          cache-dependency-path: 'frontend/package-lock.json'
+          
       - name: Install dependencies
-        run: npm install
+        run: npm install --prefix frontend --prefix frontend
       - name: Build Angular project
         run: npm run build --base-href=/loja/ 
         # ----------
@@ -48,7 +50,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload entire repository
-          path: './dist/loja'
+          path: './frontend/dist/loja'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
