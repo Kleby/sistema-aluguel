@@ -42,7 +42,7 @@ jobs:
       - name: Install dependencies
         run: npm install --prefix frontend 
       - name: Build Angular project
-        run: npm run build --base-href=/sistema-aluguel/ --public-path=/sistema-aluguel/ --prefix frontend
+        run: npm run build --base-href=./ --public-path=/sistema-aluguel/ --prefix frontend
         # ----------
       - name: Setup Pages
         uses: actions/configure-pages@v5
